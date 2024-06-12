@@ -12,5 +12,3 @@ jobs:
         id: covector
         with:
           command: 'status'
-          token: ${{ secrets.GITHUB_TOKEN }}
-          comment: true
