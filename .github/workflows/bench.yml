@@ -82,7 +82,7 @@ jobs:
           git config user.name "tauri-bench"
           git config user.email "gh.tauribot@gmail.com"
           git add .
-          git commit --message "Update WRY benchmarks"
+          git ecommit --message "Update WRY benchmarks"
           git push origin gh-pages
 
       - name: Print worker info
