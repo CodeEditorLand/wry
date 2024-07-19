@@ -59,7 +59,7 @@ javascriptcore-rs = { version = "=1.1.2", features = [ "v2_28" ], optional = tru
 webkit2gtk = { version = "=2.0.1", features = [ "v2_38" ], optional = true }
 webkit2gtk-sys = { version = "=2.0.1", optional = true }
 gtk = { version = "0.18", optional = true }
-soup3 = { version = "0.6", optional = true }
+soup3 = { version = "0.7", optional = true }
 x11-dl = { version = "2.21", optional = true }
 gdkx11 = { version = "0.18", optional = true }
 percent-encoding = "2.3"
@@ -113,7 +113,7 @@ libc = "0.2"
 [dev-dependencies]
 pollster = "0.3.0"
 tao = "0.28"
-wgpu = "0.20"
+wgpu = "22.0"
 winit = "0.30"
 getrandom = "0.2"
 http-range = "0.1"
