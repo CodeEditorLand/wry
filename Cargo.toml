@@ -105,8 +105,6 @@ sha2 = "0.10"
 base64 = "0.22"
 jni = "0.21"
 ndk = "0.9"
-ndk-sys = "0.6"
-ndk-context = "0.1"
 tao-macros = "0.1"
 libc = "0.2"
 
