@@ -25,7 +25,7 @@ and a window type that implements `HasWindowHandle`, or a gtk container widget
 if you need to support X11 and Wayland. You can use a windowing library like
 `tao` or `winit`.
 
-## Usage
+## 🛠️ Usage
 
 The minimum example to create a Window and browse a website looks like
 following:
