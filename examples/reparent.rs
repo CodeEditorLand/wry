@@ -3,10 +3,10 @@
 // SPDX-License-Identifier: MIT
 
 use tao::{
-  event::{ElementState, Event, KeyEvent, WindowEvent},
-  event_loop::{ControlFlow, EventLoop},
-  keyboard::Key,
-  window::WindowBuilder,
+	event::{ElementState, Event, KeyEvent, WindowEvent},
+	event_loop::{ControlFlow, EventLoop},
+	keyboard::Key,
+	window::WindowBuilder,
 };
 use wry::WebViewBuilder;
 
@@ -16,96 +16,87 @@ use {tao::platform::macos::WindowExtMacOS, wry::WebViewExtMacOS};
 use {tao::platform::windows::WindowExtWindows, wry::WebViewExtWindows};
 
 #[cfg(not(any(
-  target_os = "windows",
-  target_os = "macos",
-  target_os = "ios",
-  target_os = "android"
+	target_os = "windows",
+	target_os = "macos",
+	target_os = "ios",
+	target_os = "android"
 )))]
 #[cfg(not(any(
-  target_os = "windows",
-  target_os = "macos",
-  target_os = "ios",
-  target_os = "android"
+	target_os = "windows",
+	target_os = "macos",
+	target_os = "ios",
+	target_os = "android"
 )))]
 use {
-  tao::platform::unix::WindowExtUnix,
-  wry::{WebViewBuilderExtUnix, WebViewExtUnix},
+	tao::platform::unix::WindowExtUnix,
+	wry::{WebViewBuilderExtUnix, WebViewExtUnix},
 };
 
 fn main() -> wry::Result<()> {
-  let event_loop = EventLoop::new();
-  let window = WindowBuilder::new().build(&event_loop).unwrap();
-  let window2 = WindowBuilder::new().build(&event_loop).unwrap();
+	let event_loop = EventLoop::new();
+	let window = WindowBuilder::new().build(&event_loop).unwrap();
+	let window2 = WindowBuilder::new().build(&event_loop).unwrap();
 
-  #[cfg(any(
-    target_os = "windows",
-    target_os = "macos",
-    target_os = "ios",
-    target_os = "android"
-  ))]
-  let builder = WebViewBuilder::new(&window);
+	#[cfg(any(
+		target_os = "windows",
+		target_os = "macos",
+		target_os = "ios",
+		target_os = "android"
+	))]
+	let builder = WebViewBuilder::new(&window);
 
-  #[cfg(not(any(
-    target_os = "windows",
-    target_os = "macos",
-    target_os = "ios",
-    target_os = "android"
-  )))]
-  let builder = {
-    let vbox = window.default_vbox().unwrap();
-    WebViewBuilder::new_gtk(vbox)
-  };
+	#[cfg(not(any(
+		target_os = "windows",
+		target_os = "macos",
+		target_os = "ios",
+		target_os = "android"
+	)))]
+	let builder = {
+		let vbox = window.default_vbox().unwrap();
+		WebViewBuilder::new_gtk(vbox)
+	};
 
-  let webview = builder.with_url("https://tauri.app").build()?;
+	let webview = builder.with_url("https://tauri.app").build()?;
 
-  let mut webview_container = window.id();
+	let mut webview_container = window.id();
 
-  event_loop.run(move |event, _event_loop, control_flow| {
-    *control_flow = ControlFlow::Wait;
+	event_loop.run(move |event, _event_loop, control_flow| {
+		*control_flow = ControlFlow::Wait;
 
-    match event {
-      Event::WindowEvent {
-        event: WindowEvent::CloseRequested,
-        ..
-      } => *control_flow = ControlFlow::Exit,
+		match event {
+			Event::WindowEvent { event: WindowEvent::CloseRequested, .. } => {
+				*control_flow = ControlFlow::Exit
+			}
 
-      Event::WindowEvent {
-        event:
-          WindowEvent::KeyboardInput {
-            event:
-              KeyEvent {
-                logical_key: Key::Character("x"),
-                state: ElementState::Pressed,
-                ..
-              },
-            ..
-          },
-        ..
-      } => {
-        let new_parent = if webview_container == window.id() {
-          &window2
-        } else {
-          &window
-        };
-        webview_container = new_parent.id();
+			Event::WindowEvent {
+				event:
+					WindowEvent::KeyboardInput {
+						event:
+							KeyEvent {
+								logical_key: Key::Character("x"),
+								state: ElementState::Pressed,
+								..
+							},
+						..
+					},
+				..
+			} => {
+				let new_parent = if webview_container == window.id() { &window2 } else { &window };
+				webview_container = new_parent.id();
 
-        #[cfg(target_os = "macos")]
-        webview
-          .reparent(new_parent.ns_window() as cocoa::base::id)
-          .unwrap();
-        #[cfg(not(any(
-          target_os = "windows",
-          target_os = "macos",
-          target_os = "ios",
-          target_os = "android"
-        )))]
-        webview
-          .reparent(new_parent.default_vbox().unwrap())
-          .unwrap();
-        #[cfg(target_os = "windows")]
-        webview.reparent(new_parent.hwnd()).unwrap();
-      }
-      _ => {}
-    }
-  });
+				#[cfg(target_os = "macos")]
+				webview.reparent(new_parent.ns_window() as cocoa::base::id).unwrap();
+				#[cfg(not(any(
+					target_os = "windows",
+					target_os = "macos",
+					target_os = "ios",
+					target_os = "android"
+				)))]
+				webview.reparent(new_parent.default_vbox().unwrap()).unwrap();
+				#[cfg(target_os = "windows")]
+				webview.reparent(new_parent.hwnd()).unwrap();
+			}
+			_ => {}
+		}
+	});
 }

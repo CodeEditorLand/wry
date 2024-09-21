@@ -3,55 +3,55 @@
 // SPDX-License-Identifier: MIT
 
 use tao::{
-  event::{Event, WindowEvent},
-  event_loop::{ControlFlow, EventLoop},
-  window::WindowBuilder,
+	event::{Event, WindowEvent},
+	event_loop::{ControlFlow, EventLoop},
+	window::WindowBuilder,
 };
 use wry::WebViewBuilder;
 
 fn main() -> wry::Result<()> {
-  let event_loop = EventLoop::new();
-  #[allow(unused_mut)]
-  let mut builder = WindowBuilder::new()
+	let event_loop = EventLoop::new();
+	#[allow(unused_mut)]
+	let mut builder = WindowBuilder::new()
     .with_decorations(false)
     // There are actually three layer of background color when creating webview window.
     // The first is window background...
     .with_transparent(true);
-  #[cfg(target_os = "windows")]
-  {
-    use tao::platform::windows::WindowBuilderExtWindows;
-    builder = builder.with_undecorated_shadow(false);
-  }
-  let window = builder.build(&event_loop).unwrap();
+	#[cfg(target_os = "windows")]
+	{
+		use tao::platform::windows::WindowBuilderExtWindows;
+		builder = builder.with_undecorated_shadow(false);
+	}
+	let window = builder.build(&event_loop).unwrap();
 
-  #[cfg(target_os = "windows")]
-  {
-    use tao::platform::windows::WindowExtWindows;
-    window.set_undecorated_shadow(true);
-  }
+	#[cfg(target_os = "windows")]
+	{
+		use tao::platform::windows::WindowExtWindows;
+		window.set_undecorated_shadow(true);
+	}
 
-  #[cfg(any(
-    target_os = "windows",
-    target_os = "macos",
-    target_os = "ios",
-    target_os = "android"
-  ))]
-  let builder = WebViewBuilder::new(&window);
+	#[cfg(any(
+		target_os = "windows",
+		target_os = "macos",
+		target_os = "ios",
+		target_os = "android"
+	))]
+	let builder = WebViewBuilder::new(&window);
 
-  #[cfg(not(any(
-    target_os = "windows",
-    target_os = "macos",
-    target_os = "ios",
-    target_os = "android"
-  )))]
-  let builder = {
-    use tao::platform::unix::WindowExtUnix;
-    use wry::WebViewBuilderExtUnix;
-    let vbox = window.default_vbox().unwrap();
-    WebViewBuilder::new_gtk(vbox)
-  };
+	#[cfg(not(any(
+		target_os = "windows",
+		target_os = "macos",
+		target_os = "ios",
+		target_os = "android"
+	)))]
+	let builder = {
+		use tao::platform::unix::WindowExtUnix;
+		use wry::WebViewBuilderExtUnix;
+		let vbox = window.default_vbox().unwrap();
+		WebViewBuilder::new_gtk(vbox)
+	};
 
-  let _webview = builder
+	let _webview = builder
     // The second is on webview...
     // Feature `transparent` is required for transparency to work.
     .with_transparent(true)
@@ -68,15 +68,11 @@ fn main() -> wry::Result<()> {
     )
     .build()?;
 
-  event_loop.run(move |event, _, control_flow| {
-    *control_flow = ControlFlow::Wait;
+	event_loop.run(move |event, _, control_flow| {
+		*control_flow = ControlFlow::Wait;
 
-    if let Event::WindowEvent {
-      event: WindowEvent::CloseRequested,
-      ..
-    } = event
-    {
-      *control_flow = ControlFlow::Exit
-    }
-  });
+		if let Event::WindowEvent { event: WindowEvent::CloseRequested, .. } = event {
+			*control_flow = ControlFlow::Exit
+		}
+	});
 }
