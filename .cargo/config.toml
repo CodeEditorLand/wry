@@ -1,4 +1,16 @@
-# [build]
-# target = "aarch64-linux-android"
+[build]
+target-dir = "Target"
+
+[cargo-new]
+vcs = "git"
+
+[profile.release]
+opt-level = 3
+codegen-units = 1
+debug = false
+lto = true
+panic = "abort"
+strip = true
+
 [target.x86_64-apple-darwin]
 rustflags = ["-C", "link-arg=-mmacosx-version-min=10.12"]
