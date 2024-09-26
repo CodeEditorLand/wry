@@ -212,8 +212,8 @@ pub(crate) mod android;
 pub use crate::android::android_setup;
 #[cfg(target_os = "android")]
 pub mod prelude {
-	pub use crate::android::{binding::*, dispatch, find_class, Context};
-	pub use tao_macros::{android_fn, generate_package_name};
+  pub use crate::android::{binding::*, dispatch, find_class, Context};
+  pub use tao_macros::{android_fn, generate_package_name};
 }
 #[cfg(target_os = "android")]
 pub use android::JniHandle;
@@ -257,26 +257,26 @@ pub use web_context::WebContext;
 /// A rectangular region.
 #[derive(Clone, Copy, Debug)]
 pub struct Rect {
-	/// Rect position.
-	pub position: dpi::Position,
-	/// Rect size.
-	pub size: dpi::Size,
+  /// Rect position.
+  pub position: dpi::Position,
+  /// Rect size.
+  pub size: dpi::Size,
 }
 
 impl Default for Rect {
-	fn default() -> Self {
-		Self {
-			position: dpi::LogicalPosition::new(0, 0).into(),
-			size: dpi::LogicalSize::new(0, 0).into(),
-		}
-	}
+  fn default() -> Self {
+    Self {
+      position: dpi::LogicalPosition::new(0, 0).into(),
+      size: dpi::LogicalSize::new(0, 0).into(),
+    }
+  }
 }
 
 /// Resolves a custom protocol [`Request`] asynchronously.
 ///
 /// See [`WebViewBuilder::with_asynchronous_custom_protocol`] for more information.
 pub struct RequestAsyncResponder {
-	pub(crate) responder: Box<dyn FnOnce(Response<Cow<'static, [u8]>>)>,
+  pub(crate) responder: Box<dyn FnOnce(Response<Cow<'static, [u8]>>)>,
 }
 
 // SAFETY: even though the webview bindings do not indicate the responder is Send,
@@ -285,264 +285,264 @@ pub struct RequestAsyncResponder {
 unsafe impl Send for RequestAsyncResponder {}
 
 impl RequestAsyncResponder {
-	/// Resolves the request with the given response.
-	pub fn respond<T: Into<Cow<'static, [u8]>>>(self, response: Response<T>) {
-		let (parts, body) = response.into_parts();
-		(self.responder)(Response::from_parts(parts, body.into()))
-	}
+  /// Resolves the request with the given response.
+  pub fn respond<T: Into<Cow<'static, [u8]>>>(self, response: Response<T>) {
+    let (parts, body) = response.into_parts();
+    (self.responder)(Response::from_parts(parts, body.into()))
+  }
 }
 
 pub struct WebViewAttributes {
-	/// Whether the WebView should have a custom user-agent.
-	pub user_agent: Option<String>,
+  /// Whether the WebView should have a custom user-agent.
+  pub user_agent: Option<String>,
 
-	/// Whether the WebView window should be visible.
-	pub visible: bool,
+  /// Whether the WebView window should be visible.
+  pub visible: bool,
 
-	/// Whether the WebView should be transparent.
-	///
-	/// ## Platform-specific:
-	///
-	/// **Windows 7**: Not supported.
-	pub transparent: bool,
+  /// Whether the WebView should be transparent.
+  ///
+  /// ## Platform-specific:
+  ///
+  /// **Windows 7**: Not supported.
+  pub transparent: bool,
 
-	/// Specify the webview background color. This will be ignored if `transparent` is set to `true`.
-	///
-	/// The color uses the RGBA format.
-	///
-	/// ## Platform-specific:
-	///
-	/// - **macOS / iOS**: Not implemented.
-	/// - **Windows**:
-	///   - On Windows 7, transparency is not supported and the alpha value will be ignored.
-	///   - On Windows higher than 7: translucent colors are not supported so any alpha value other than `0` will be replaced by `255`
-	pub background_color: Option<RGBA>,
+  /// Specify the webview background color. This will be ignored if `transparent` is set to `true`.
+  ///
+  /// The color uses the RGBA format.
+  ///
+  /// ## Platform-specific:
+  ///
+  /// - **macOS / iOS**: Not implemented.
+  /// - **Windows**:
+  ///   - On Windows 7, transparency is not supported and the alpha value will be ignored.
+  ///   - On Windows higher than 7: translucent colors are not supported so any alpha value other than `0` will be replaced by `255`
+  pub background_color: Option<RGBA>,
 
-	/// Whether load the provided URL to [`WebView`].
-	///
-	/// ## Note
-	///
-	/// Data URLs are not supported, use [`html`](Self::html) option instead.
-	pub url: Option<String>,
+  /// Whether load the provided URL to [`WebView`].
+  ///
+  /// ## Note
+  ///
+  /// Data URLs are not supported, use [`html`](Self::html) option instead.
+  pub url: Option<String>,
 
-	/// Headers used when loading the requested [`url`](Self::url).
-	pub headers: Option<http::HeaderMap>,
+  /// Headers used when loading the requested [`url`](Self::url).
+  pub headers: Option<http::HeaderMap>,
 
-	/// Whether page zooming by hotkeys is enabled
-	///
-	/// ## Platform-specific
-	///
-	/// **macOS / Linux / Android / iOS**: Unsupported
-	pub zoom_hotkeys_enabled: bool,
+  /// Whether page zooming by hotkeys is enabled
+  ///
+  /// ## Platform-specific
+  ///
+  /// **macOS / Linux / Android / iOS**: Unsupported
+  pub zoom_hotkeys_enabled: bool,
 
-	/// Whether load the provided html string to [`WebView`].
-	/// This will be ignored if the `url` is provided.
-	///
-	/// # Warning
-	///
-	/// The Page loaded from html string will have `null` origin.
-	///
-	/// ## PLatform-specific:
-	///
-	/// - **Windows:** the string can not be larger than 2 MB (2 * 1024 * 1024 bytes) in total size
-	pub html: Option<String>,
+  /// Whether load the provided html string to [`WebView`].
+  /// This will be ignored if the `url` is provided.
+  ///
+  /// # Warning
+  ///
+  /// The Page loaded from html string will have `null` origin.
+  ///
+  /// ## PLatform-specific:
+  ///
+  /// - **Windows:** the string can not be larger than 2 MB (2 * 1024 * 1024 bytes) in total size
+  pub html: Option<String>,
 
-	/// Initialize javascript code when loading new pages. When webview load a new page, this
-	/// initialization code will be executed. It is guaranteed that code is executed before
-	/// `window.onload`.
-	///
-	/// ## Platform-specific
-	///
-	/// - **Android:** The Android WebView does not provide an API for initialization scripts,
-	/// so we prepend them to each HTML head. They are only implemented on custom protocol URLs.
-	pub initialization_scripts: Vec<String>,
+  /// Initialize javascript code when loading new pages. When webview load a new page, this
+  /// initialization code will be executed. It is guaranteed that code is executed before
+  /// `window.onload`.
+  ///
+  /// ## Platform-specific
+  ///
+  /// - **Android:** The Android WebView does not provide an API for initialization scripts,
+  /// so we prepend them to each HTML head. They are only implemented on custom protocol URLs.
+  pub initialization_scripts: Vec<String>,
 
-	/// A list of custom loading protocols with pairs of scheme uri string and a handling
-	/// closure.
-	///
-	/// The closure takes a [Request] and returns a [Response].
-	///
-	/// # Warning
-	///
-	/// Pages loaded from custom protocol will have different Origin on different platforms. And
-	/// servers which enforce CORS will need to add exact same Origin header in `Access-Control-Allow-Origin`
-	/// if you wish to send requests with native `fetch` and `XmlHttpRequest` APIs. Here are the
-	/// different Origin headers across platforms:
-	///
-	/// - macOS, iOS and Linux: `<scheme_name>://<path>` (so it will be `wry://path/to/page/`).
-	/// - Windows and Android: `http://<scheme_name>.<path>` by default (so it will be `http://wry.path/to/page). To use `https` instead of `http`, use [`WebViewBuilderExtWindows::with_https_scheme`] and [`WebViewBuilderExtAndroid::with_https_scheme`].
-	///
-	/// # Reading assets on mobile
-	///
-	/// - Android: Android has `assets` and `resource` path finder to
-	/// locate your files in those directories. For more information, see [Loading in-app content](https://developer.android.com/guide/webapps/load-local-content) page.
-	/// - iOS: To get the path of your assets, you can call [`CFBundle::resources_path`](https://docs.rs/core-foundation/latest/core_foundation/bundle/struct.CFBundle.html#method.resources_path). So url like `wry://assets/index.html` could get the html file in assets directory.
-	pub custom_protocols: HashMap<String, Box<dyn Fn(Request<Vec<u8>>, RequestAsyncResponder)>>,
+  /// A list of custom loading protocols with pairs of scheme uri string and a handling
+  /// closure.
+  ///
+  /// The closure takes a [Request] and returns a [Response].
+  ///
+  /// # Warning
+  ///
+  /// Pages loaded from custom protocol will have different Origin on different platforms. And
+  /// servers which enforce CORS will need to add exact same Origin header in `Access-Control-Allow-Origin`
+  /// if you wish to send requests with native `fetch` and `XmlHttpRequest` APIs. Here are the
+  /// different Origin headers across platforms:
+  ///
+  /// - macOS, iOS and Linux: `<scheme_name>://<path>` (so it will be `wry://path/to/page/`).
+  /// - Windows and Android: `http://<scheme_name>.<path>` by default (so it will be `http://wry.path/to/page). To use `https` instead of `http`, use [`WebViewBuilderExtWindows::with_https_scheme`] and [`WebViewBuilderExtAndroid::with_https_scheme`].
+  ///
+  /// # Reading assets on mobile
+  ///
+  /// - Android: Android has `assets` and `resource` path finder to
+  /// locate your files in those directories. For more information, see [Loading in-app content](https://developer.android.com/guide/webapps/load-local-content) page.
+  /// - iOS: To get the path of your assets, you can call [`CFBundle::resources_path`](https://docs.rs/core-foundation/latest/core_foundation/bundle/struct.CFBundle.html#method.resources_path). So url like `wry://assets/index.html` could get the html file in assets directory.
+  pub custom_protocols: HashMap<String, Box<dyn Fn(Request<Vec<u8>>, RequestAsyncResponder)>>,
 
-	/// The IPC handler to receive the message from Javascript on webview
-	/// using `window.ipc.postMessage("insert_message_here")` to host Rust code.
-	pub ipc_handler: Option<Box<dyn Fn(Request<String>)>>,
+  /// The IPC handler to receive the message from Javascript on webview
+  /// using `window.ipc.postMessage("insert_message_here")` to host Rust code.
+  pub ipc_handler: Option<Box<dyn Fn(Request<String>)>>,
 
-	/// A handler closure to process incoming [`DragDropEvent`] of the webview.
-	///
-	/// # Blocking OS Default Behavior
-	/// Return `true` in the callback to block the OS' default behavior.
-	///
-	/// Note, that if you do block this behavior, it won't be possible to drop files on `<input type="file">` forms.
-	/// Also note, that it's not possible to manually set the value of a `<input type="file">` via JavaScript for security reasons.
-	#[cfg(feature = "drag-drop")]
-	#[cfg_attr(docsrs, doc(cfg(feature = "drag-drop")))]
-	pub drag_drop_handler: Option<Box<dyn Fn(DragDropEvent) -> bool>>,
-	#[cfg(not(feature = "drag-drop"))]
-	drag_drop_handler: Option<Box<dyn Fn(DragDropEvent) -> bool>>,
+  /// A handler closure to process incoming [`DragDropEvent`] of the webview.
+  ///
+  /// # Blocking OS Default Behavior
+  /// Return `true` in the callback to block the OS' default behavior.
+  ///
+  /// Note, that if you do block this behavior, it won't be possible to drop files on `<input type="file">` forms.
+  /// Also note, that it's not possible to manually set the value of a `<input type="file">` via JavaScript for security reasons.
+  #[cfg(feature = "drag-drop")]
+  #[cfg_attr(docsrs, doc(cfg(feature = "drag-drop")))]
+  pub drag_drop_handler: Option<Box<dyn Fn(DragDropEvent) -> bool>>,
+  #[cfg(not(feature = "drag-drop"))]
+  drag_drop_handler: Option<Box<dyn Fn(DragDropEvent) -> bool>>,
 
-	/// A navigation handler to decide if incoming url is allowed to navigate.
-	///
-	/// The closure take a `String` parameter as url and returns a `bool` to determine whether the navigation should happen.
-	/// `true` allows to navigate and `false` does not.
-	pub navigation_handler: Option<Box<dyn Fn(String) -> bool>>,
+  /// A navigation handler to decide if incoming url is allowed to navigate.
+  ///
+  /// The closure take a `String` parameter as url and returns a `bool` to determine whether the navigation should happen.
+  /// `true` allows to navigate and `false` does not.
+  pub navigation_handler: Option<Box<dyn Fn(String) -> bool>>,
 
-	/// A download started handler to manage incoming downloads.
-	///
-	/// The closure takes two parameters, the first is a `String` representing the url being downloaded from and and the
-	/// second is a mutable `PathBuf` reference that (possibly) represents where the file will be downloaded to. The latter
-	/// parameter can be used to set the download location by assigning a new path to it, the assigned path _must_ be
-	/// absolute. The closure returns a `bool` to allow or deny the download.
-	pub download_started_handler: Option<Box<dyn FnMut(String, &mut PathBuf) -> bool>>,
+  /// A download started handler to manage incoming downloads.
+  ///
+  /// The closure takes two parameters, the first is a `String` representing the url being downloaded from and and the
+  /// second is a mutable `PathBuf` reference that (possibly) represents where the file will be downloaded to. The latter
+  /// parameter can be used to set the download location by assigning a new path to it, the assigned path _must_ be
+  /// absolute. The closure returns a `bool` to allow or deny the download.
+  pub download_started_handler: Option<Box<dyn FnMut(String, &mut PathBuf) -> bool>>,
 
-	/// A download completion handler to manage downloads that have finished.
-	///
-	/// The closure is fired when the download completes, whether it was successful or not.
-	/// The closure takes a `String` representing the URL of the original download request, an `Option<PathBuf>`
-	/// potentially representing the filesystem path the file was downloaded to, and a `bool` indicating if the download
-	/// succeeded. A value of `None` being passed instead of a `PathBuf` does not necessarily indicate that the download
-	/// did not succeed, and may instead indicate some other failure, always check the third parameter if you need to
-	/// know if the download succeeded.
-	///
-	/// ## Platform-specific:
-	///
-	/// - **macOS**: The second parameter indicating the path the file was saved to, is always empty,
-	/// due to API limitations.
-	pub download_completed_handler: Option<Rc<dyn Fn(String, Option<PathBuf>, bool) + 'static>>,
+  /// A download completion handler to manage downloads that have finished.
+  ///
+  /// The closure is fired when the download completes, whether it was successful or not.
+  /// The closure takes a `String` representing the URL of the original download request, an `Option<PathBuf>`
+  /// potentially representing the filesystem path the file was downloaded to, and a `bool` indicating if the download
+  /// succeeded. A value of `None` being passed instead of a `PathBuf` does not necessarily indicate that the download
+  /// did not succeed, and may instead indicate some other failure, always check the third parameter if you need to
+  /// know if the download succeeded.
+  ///
+  /// ## Platform-specific:
+  ///
+  /// - **macOS**: The second parameter indicating the path the file was saved to, is always empty,
+  /// due to API limitations.
+  pub download_completed_handler: Option<Rc<dyn Fn(String, Option<PathBuf>, bool) + 'static>>,
 
-	/// A new window handler to decide if incoming url is allowed to open in a new window.
-	///
-	/// The closure take a `String` parameter as url and return `bool` to determine whether the window should open.
-	/// `true` allows to open and `false` does not.
-	pub new_window_req_handler: Option<Box<dyn Fn(String) -> bool>>,
+  /// A new window handler to decide if incoming url is allowed to open in a new window.
+  ///
+  /// The closure take a `String` parameter as url and return `bool` to determine whether the window should open.
+  /// `true` allows to open and `false` does not.
+  pub new_window_req_handler: Option<Box<dyn Fn(String) -> bool>>,
 
-	/// Enables clipboard access for the page rendered on **Linux** and **Windows**.
-	///
-	/// macOS doesn't provide such method and is always enabled by default. But your app will still need to add menu
-	/// item accelerators to use the clipboard shortcuts.
-	pub clipboard: bool,
+  /// Enables clipboard access for the page rendered on **Linux** and **Windows**.
+  ///
+  /// macOS doesn't provide such method and is always enabled by default. But your app will still need to add menu
+  /// item accelerators to use the clipboard shortcuts.
+  pub clipboard: bool,
 
-	/// Enable web inspector which is usually called browser devtools.
-	///
-	/// Note this only enables devtools to the webview. To open it, you can call
-	/// [`WebView::open_devtools`], or right click the page and open it from the context menu.
-	///
-	/// ## Platform-specific
-	///
-	/// - macOS: This will call private functions on **macOS**. It is enabled in **debug** builds,
-	/// but requires `devtools` feature flag to actually enable it in **release** builds.
-	/// - Android: Open `chrome://inspect/#devices` in Chrome to get the devtools window. Wry's `WebView` devtools API isn't supported on Android.
-	/// - iOS: Open Safari > Develop > [Your Device Name] > [Your WebView] to get the devtools window.
-	pub devtools: bool,
+  /// Enable web inspector which is usually called browser devtools.
+  ///
+  /// Note this only enables devtools to the webview. To open it, you can call
+  /// [`WebView::open_devtools`], or right click the page and open it from the context menu.
+  ///
+  /// ## Platform-specific
+  ///
+  /// - macOS: This will call private functions on **macOS**. It is enabled in **debug** builds,
+  /// but requires `devtools` feature flag to actually enable it in **release** builds.
+  /// - Android: Open `chrome://inspect/#devices` in Chrome to get the devtools window. Wry's `WebView` devtools API isn't supported on Android.
+  /// - iOS: Open Safari > Develop > [Your Device Name] > [Your WebView] to get the devtools window.
+  pub devtools: bool,
 
-	/// Whether clicking an inactive window also clicks through to the webview. Default is `false`.
-	///
-	/// ## Platform-specific
-	///
-	/// This configuration only impacts macOS.
-	pub accept_first_mouse: bool,
+  /// Whether clicking an inactive window also clicks through to the webview. Default is `false`.
+  ///
+  /// ## Platform-specific
+  ///
+  /// This configuration only impacts macOS.
+  pub accept_first_mouse: bool,
 
-	/// Indicates whether horizontal swipe gestures trigger backward and forward page navigation.
-	///
-	/// ## Platform-specific:
-	///
-	/// - Windows: Setting to `false` does nothing on WebView2 Runtime version before 92.0.902.0,
-	/// see https://learn.microsoft.com/en-us/microsoft-edge/webview2/release-notes/archive?tabs=dotnetcsharp#10902-prerelease
-	///
-	/// - **Android / iOS:** Unsupported.
-	pub back_forward_navigation_gestures: bool,
+  /// Indicates whether horizontal swipe gestures trigger backward and forward page navigation.
+  ///
+  /// ## Platform-specific:
+  ///
+  /// - Windows: Setting to `false` does nothing on WebView2 Runtime version before 92.0.902.0,
+  /// see https://learn.microsoft.com/en-us/microsoft-edge/webview2/release-notes/archive?tabs=dotnetcsharp#10902-prerelease
+  ///
+  /// - **Android / iOS:** Unsupported.
+  pub back_forward_navigation_gestures: bool,
 
-	/// Set a handler closure to process the change of the webview's document title.
-	pub document_title_changed_handler: Option<Box<dyn Fn(String)>>,
+  /// Set a handler closure to process the change of the webview's document title.
+  pub document_title_changed_handler: Option<Box<dyn Fn(String)>>,
 
-	/// Run the WebView with incognito mode. Note that WebContext will be ingored if incognito is
-	/// enabled.
-	///
-	/// ## Platform-specific:
-	///
-	/// - Windows: Requires WebView2 Runtime version 101.0.1210.39 or higher, does nothing on older versions,
-	/// see https://learn.microsoft.com/en-us/microsoft-edge/webview2/release-notes/archive?tabs=dotnetcsharp#10121039
-	/// - **Android:** Unsupported yet.
-	pub incognito: bool,
+  /// Run the WebView with incognito mode. Note that WebContext will be ingored if incognito is
+  /// enabled.
+  ///
+  /// ## Platform-specific:
+  ///
+  /// - Windows: Requires WebView2 Runtime version 101.0.1210.39 or higher, does nothing on older versions,
+  /// see https://learn.microsoft.com/en-us/microsoft-edge/webview2/release-notes/archive?tabs=dotnetcsharp#10121039
+  /// - **Android:** Unsupported yet.
+  pub incognito: bool,
 
-	/// Whether all media can be played without user interaction.
-	pub autoplay: bool,
+  /// Whether all media can be played without user interaction.
+  pub autoplay: bool,
 
-	/// Set a handler closure to process page load events.
-	pub on_page_load_handler: Option<Box<dyn Fn(PageLoadEvent, String)>>,
+  /// Set a handler closure to process page load events.
+  pub on_page_load_handler: Option<Box<dyn Fn(PageLoadEvent, String)>>,
 
-	/// Set a proxy configuration for the webview. Supports HTTP CONNECT and SOCKSv5 proxies
-	///
-	/// - **macOS**: Requires macOS 14.0+ and the `mac-proxy` feature flag to be enabled.
-	/// - **Android / iOS:** Not supported.
-	pub proxy_config: Option<ProxyConfig>,
+  /// Set a proxy configuration for the webview. Supports HTTP CONNECT and SOCKSv5 proxies
+  ///
+  /// - **macOS**: Requires macOS 14.0+ and the `mac-proxy` feature flag to be enabled.
+  /// - **Android / iOS:** Not supported.
+  pub proxy_config: Option<ProxyConfig>,
 
-	/// Whether the webview should be focused when created.
-	///
-	/// ## Platform-specific:
-	///
-	/// - **macOS / Android / iOS:** Unsupported.
-	pub focused: bool,
+  /// Whether the webview should be focused when created.
+  ///
+  /// ## Platform-specific:
+  ///
+  /// - **macOS / Android / iOS:** Unsupported.
+  pub focused: bool,
 
-	/// The webview bounds. Defaults to `x: 0, y: 0, width: 200, height: 200`.
-	/// This is only effective if the webview was created by [`WebView::new_as_child`] or [`WebViewBuilder::new_as_child`]
-	/// or on Linux, if was created by [`WebViewExtUnix::new_gtk`] or [`WebViewBuilderExtUnix::new_gtk`] with [`gtk::Fixed`].
-	pub bounds: Option<Rect>,
+  /// The webview bounds. Defaults to `x: 0, y: 0, width: 200, height: 200`.
+  /// This is only effective if the webview was created by [`WebView::new_as_child`] or [`WebViewBuilder::new_as_child`]
+  /// or on Linux, if was created by [`WebViewExtUnix::new_gtk`] or [`WebViewBuilderExtUnix::new_gtk`] with [`gtk::Fixed`].
+  pub bounds: Option<Rect>,
 }
 
 impl Default for WebViewAttributes {
-	fn default() -> Self {
-		Self {
-			user_agent: None,
-			visible: true,
-			transparent: false,
-			background_color: None,
-			url: None,
-			headers: None,
-			html: None,
-			initialization_scripts: Default::default(),
-			custom_protocols: Default::default(),
-			ipc_handler: None,
-			drag_drop_handler: None,
-			navigation_handler: None,
-			download_started_handler: None,
-			download_completed_handler: None,
-			new_window_req_handler: None,
-			clipboard: false,
-			#[cfg(debug_assertions)]
-			devtools: true,
-			#[cfg(not(debug_assertions))]
-			devtools: false,
-			zoom_hotkeys_enabled: false,
-			accept_first_mouse: false,
-			back_forward_navigation_gestures: false,
-			document_title_changed_handler: None,
-			incognito: false,
-			autoplay: true,
-			on_page_load_handler: None,
-			proxy_config: None,
-			focused: true,
-			bounds: Some(Rect {
-				position: dpi::LogicalPosition::new(0, 0).into(),
-				size: dpi::LogicalSize::new(200, 200).into(),
-			}),
-		}
-	}
+  fn default() -> Self {
+    Self {
+      user_agent: None,
+      visible: true,
+      transparent: false,
+      background_color: None,
+      url: None,
+      headers: None,
+      html: None,
+      initialization_scripts: Default::default(),
+      custom_protocols: Default::default(),
+      ipc_handler: None,
+      drag_drop_handler: None,
+      navigation_handler: None,
+      download_started_handler: None,
+      download_completed_handler: None,
+      new_window_req_handler: None,
+      clipboard: false,
+      #[cfg(debug_assertions)]
+      devtools: true,
+      #[cfg(not(debug_assertions))]
+      devtools: false,
+      zoom_hotkeys_enabled: false,
+      accept_first_mouse: false,
+      back_forward_navigation_gestures: false,
+      document_title_changed_handler: None,
+      incognito: false,
+      autoplay: true,
+      on_page_load_handler: None,
+      proxy_config: None,
+      focused: true,
+      bounds: Some(Rect {
+        position: dpi::LogicalPosition::new(0, 0).into(),
+        size: dpi::LogicalSize::new(200, 200).into(),
+      }),
+    }
+  }
 }
 
 /// Builder type of [`WebView`].
@@ -551,786 +551,775 @@ impl Default for WebViewAttributes {
 /// scripts for those who prefer to control fine grained window creation and event handling.
 /// [`WebViewBuilder`] provides ability to setup initialization before web engine starts.
 pub struct WebViewBuilder<'a> {
-	pub attrs: WebViewAttributes,
-	as_child: bool,
-	window: Option<&'a dyn HasWindowHandle>,
-	platform_specific: PlatformSpecificWebViewAttributes,
-	web_context: Option<&'a mut WebContext>,
-	#[cfg(gtk)]
-	gtk_widget: Option<&'a gtk::Container>,
+  pub attrs: WebViewAttributes,
+  as_child: bool,
+  window: Option<&'a dyn HasWindowHandle>,
+  platform_specific: PlatformSpecificWebViewAttributes,
+  web_context: Option<&'a mut WebContext>,
+  #[cfg(gtk)]
+  gtk_widget: Option<&'a gtk::Container>,
 }
 
 impl<'a> WebViewBuilder<'a> {
-	/// Create a [`WebViewBuilder`] from a type that implements [`HasWindowHandle`].
-	///
-	/// # Platform-specific:
-	///
-	/// - **Linux**: Only X11 is supported, if you want to support Wayland too, use [`WebViewBuilderExtUnix::new_gtk`].
-	///
-	///   Although this methods only needs an X11 window handle, we use webkit2gtk, so you still need to initialize gtk
-	///   by callling [`gtk::init`] and advance its loop alongside your event loop using [`gtk::main_iteration_do`].
-	///   Checkout the [Platform Considerations](https://docs.rs/wry/latest/wry/#platform-considerations) section in the crate root documentation.
-	/// - **Windows**: The webview will auto-resize when the passed handle is resized.
-	/// - **Linux (X11)**: Unlike macOS and Windows, the webview will not auto-resize and you'll need to call [`WebView::set_bounds`] manually.
-	///
-	/// # Panics:
-	///
-	/// - Panics if the provided handle was not supported or invalid.
-	/// - Panics on Linux, if [`gtk::init`] was not called in this thread.
-	pub fn new(window: &'a impl HasWindowHandle) -> Self {
-		Self {
-			attrs: WebViewAttributes::default(),
-			window: Some(window),
-			as_child: false,
-			#[allow(clippy::default_constructed_unit_structs)]
-			platform_specific: PlatformSpecificWebViewAttributes::default(),
-			web_context: None,
-			#[cfg(gtk)]
-			gtk_widget: None,
-		}
-	}
+  /// Create a [`WebViewBuilder`] from a type that implements [`HasWindowHandle`].
+  ///
+  /// # Platform-specific:
+  ///
+  /// - **Linux**: Only X11 is supported, if you want to support Wayland too, use [`WebViewBuilderExtUnix::new_gtk`].
+  ///
+  ///   Although this methods only needs an X11 window handle, we use webkit2gtk, so you still need to initialize gtk
+  ///   by callling [`gtk::init`] and advance its loop alongside your event loop using [`gtk::main_iteration_do`].
+  ///   Checkout the [Platform Considerations](https://docs.rs/wry/latest/wry/#platform-considerations) section in the crate root documentation.
+  /// - **Windows**: The webview will auto-resize when the passed handle is resized.
+  /// - **Linux (X11)**: Unlike macOS and Windows, the webview will not auto-resize and you'll need to call [`WebView::set_bounds`] manually.
+  ///
+  /// # Panics:
+  ///
+  /// - Panics if the provided handle was not supported or invalid.
+  /// - Panics on Linux, if [`gtk::init`] was not called in this thread.
+  pub fn new(window: &'a impl HasWindowHandle) -> Self {
+    Self {
+      attrs: WebViewAttributes::default(),
+      window: Some(window),
+      as_child: false,
+      #[allow(clippy::default_constructed_unit_structs)]
+      platform_specific: PlatformSpecificWebViewAttributes::default(),
+      web_context: None,
+      #[cfg(gtk)]
+      gtk_widget: None,
+    }
+  }
 
-	/// Create [`WebViewBuilder`] as a child window inside the provided [`HasWindowHandle`].
-	///
-	/// ## Platform-specific
-	///
-	/// - **Windows**: This will create the webview as a child window of the `parent` window.
-	/// - **macOS**: This will create the webview as a `NSView` subview of the `parent` window's
-	/// content view.
-	/// - **Linux**: This will create the webview as a child window of the `parent` window. Only X11
-	/// is supported. This method won't work on Wayland.
-	///
-	///   Although this methods only needs an X11 window handle, you use webkit2gtk, so you still need to initialize gtk
-	///   by callling [`gtk::init`] and advance its loop alongside your event loop using [`gtk::main_iteration_do`].
-	///   Checkout the [Platform Considerations](https://docs.rs/wry/latest/wry/#platform-considerations) section in the crate root documentation.
-	///
-	///   If you want to support child webviews on X11 and Wayland at the same time,
-	///   we recommend using [`WebViewBuilderExtUnix::new_gtk`] with [`gtk::Fixed`].
-	/// - **Android/iOS:** Unsupported.
-	///
-	/// # Panics:
-	///
-	/// - Panics if the provided handle was not support or invalid.
-	/// - Panics on Linux, if [`gtk::init`] was not called in this thread.
-	pub fn new_as_child(parent: &'a impl HasWindowHandle) -> Self {
-		Self {
-			attrs: WebViewAttributes::default(),
-			window: Some(parent),
-			as_child: true,
-			#[allow(clippy::default_constructed_unit_structs)]
-			platform_specific: PlatformSpecificWebViewAttributes::default(),
-			web_context: None,
-			#[cfg(gtk)]
-			gtk_widget: None,
-		}
-	}
+  /// Create [`WebViewBuilder`] as a child window inside the provided [`HasWindowHandle`].
+  ///
+  /// ## Platform-specific
+  ///
+  /// - **Windows**: This will create the webview as a child window of the `parent` window.
+  /// - **macOS**: This will create the webview as a `NSView` subview of the `parent` window's
+  /// content view.
+  /// - **Linux**: This will create the webview as a child window of the `parent` window. Only X11
+  /// is supported. This method won't work on Wayland.
+  ///
+  ///   Although this methods only needs an X11 window handle, you use webkit2gtk, so you still need to initialize gtk
+  ///   by callling [`gtk::init`] and advance its loop alongside your event loop using [`gtk::main_iteration_do`].
+  ///   Checkout the [Platform Considerations](https://docs.rs/wry/latest/wry/#platform-considerations) section in the crate root documentation.
+  ///
+  ///   If you want to support child webviews on X11 and Wayland at the same time,
+  ///   we recommend using [`WebViewBuilderExtUnix::new_gtk`] with [`gtk::Fixed`].
+  /// - **Android/iOS:** Unsupported.
+  ///
+  /// # Panics:
+  ///
+  /// - Panics if the provided handle was not support or invalid.
+  /// - Panics on Linux, if [`gtk::init`] was not called in this thread.
+  pub fn new_as_child(parent: &'a impl HasWindowHandle) -> Self {
+    Self {
+      attrs: WebViewAttributes::default(),
+      window: Some(parent),
+      as_child: true,
+      #[allow(clippy::default_constructed_unit_structs)]
+      platform_specific: PlatformSpecificWebViewAttributes::default(),
+      web_context: None,
+      #[cfg(gtk)]
+      gtk_widget: None,
+    }
+  }
 
-	/// Indicates whether horizontal swipe gestures trigger backward and forward page navigation.
-	///
-	/// ## Platform-specific:
-	///
-	/// - **Android / iOS:** Unsupported.
-	pub fn with_back_forward_navigation_gestures(mut self, gesture: bool) -> Self {
-		self.attrs.back_forward_navigation_gestures = gesture;
-		self
-	}
+  /// Indicates whether horizontal swipe gestures trigger backward and forward page navigation.
+  ///
+  /// ## Platform-specific:
+  ///
+  /// - **Android / iOS:** Unsupported.
+  pub fn with_back_forward_navigation_gestures(mut self, gesture: bool) -> Self {
+    self.attrs.back_forward_navigation_gestures = gesture;
+    self
+  }
 
-	/// Sets whether the WebView should be transparent.
-	///
-	/// ## Platform-specific:
-	///
-	/// **Windows 7**: Not supported.
-	pub fn with_transparent(mut self, transparent: bool) -> Self {
-		self.attrs.transparent = transparent;
-		self
-	}
+  /// Sets whether the WebView should be transparent.
+  ///
+  /// ## Platform-specific:
+  ///
+  /// **Windows 7**: Not supported.
+  pub fn with_transparent(mut self, transparent: bool) -> Self {
+    self.attrs.transparent = transparent;
+    self
+  }
 
-	/// Specify the webview background color. This will be ignored if `transparent` is set to `true`.
-	///
-	/// The color uses the RGBA format.
-	///
-	/// ## Platfrom-specific:
-	///
-	/// - **macOS / iOS**: Not implemented.
-	/// - **Windows**:
-	///   - on Windows 7, transparency is not supported and the alpha value will be ignored.
-	///   - on Windows higher than 7: translucent colors are not supported so any alpha value other than `0` will be replaced by `255`
-	pub fn with_background_color(mut self, background_color: RGBA) -> Self {
-		self.attrs.background_color = Some(background_color);
-		self
-	}
+  /// Specify the webview background color. This will be ignored if `transparent` is set to `true`.
+  ///
+  /// The color uses the RGBA format.
+  ///
+  /// ## Platfrom-specific:
+  ///
+  /// - **macOS / iOS**: Not implemented.
+  /// - **Windows**:
+  ///   - on Windows 7, transparency is not supported and the alpha value will be ignored.
+  ///   - on Windows higher than 7: translucent colors are not supported so any alpha value other than `0` will be replaced by `255`
+  pub fn with_background_color(mut self, background_color: RGBA) -> Self {
+    self.attrs.background_color = Some(background_color);
+    self
+  }
 
-	/// Sets whether the WebView should be visible or not.
-	pub fn with_visible(mut self, visible: bool) -> Self {
-		self.attrs.visible = visible;
-		self
-	}
+  /// Sets whether the WebView should be visible or not.
+  pub fn with_visible(mut self, visible: bool) -> Self {
+    self.attrs.visible = visible;
+    self
+  }
 
-	/// Sets whether all media can be played without user interaction.
-	pub fn with_autoplay(mut self, autoplay: bool) -> Self {
-		self.attrs.autoplay = autoplay;
-		self
-	}
+  /// Sets whether all media can be played without user interaction.
+  pub fn with_autoplay(mut self, autoplay: bool) -> Self {
+    self.attrs.autoplay = autoplay;
+    self
+  }
 
-	/// Initialize javascript code when loading new pages. When webview load a new page, this
-	/// initialization code will be executed. It is guaranteed that code is executed before
-	/// `window.onload`.
-	///
-	/// ## Platform-specific
-	///
-	/// - **Android:** When [addDocumentStartJavaScript] is not supported,
-	/// we prepend them to each HTML head (implementation only supported on custom protocol URLs).
-	/// For remote URLs, we use [onPageStarted] which is not guaranteed to run before other scripts.
-	///
-	/// [addDocumentStartJavaScript]: https://developer.android.com/reference/androidx/webkit/WebViewCompat#addDocumentStartJavaScript(android.webkit.WebView,java.lang.String,java.util.Set%3Cjava.lang.String%3E)
-	/// [onPageStarted]: https://developer.android.com/reference/android/webkit/WebViewClient#onPageStarted(android.webkit.WebView,%20java.lang.String,%20android.graphics.Bitmap)
-	pub fn with_initialization_script(mut self, js: &str) -> Self {
-		if !js.is_empty() {
-			self.attrs.initialization_scripts.push(js.to_string());
-		}
-		self
-	}
+  /// Initialize javascript code when loading new pages. When webview load a new page, this
+  /// initialization code will be executed. It is guaranteed that code is executed before
+  /// `window.onload`.
+  ///
+  /// ## Platform-specific
+  ///
+  /// - **Android:** When [addDocumentStartJavaScript] is not supported,
+  /// we prepend them to each HTML head (implementation only supported on custom protocol URLs).
+  /// For remote URLs, we use [onPageStarted] which is not guaranteed to run before other scripts.
+  ///
+  /// [addDocumentStartJavaScript]: https://developer.android.com/reference/androidx/webkit/WebViewCompat#addDocumentStartJavaScript(android.webkit.WebView,java.lang.String,java.util.Set%3Cjava.lang.String%3E)
+  /// [onPageStarted]: https://developer.android.com/reference/android/webkit/WebViewClient#onPageStarted(android.webkit.WebView,%20java.lang.String,%20android.graphics.Bitmap)
+  pub fn with_initialization_script(mut self, js: &str) -> Self {
+    if !js.is_empty() {
+      self.attrs.initialization_scripts.push(js.to_string());
+    }
+    self
+  }
 
-	/// Register custom loading protocols with pairs of scheme uri string and a handling
-	/// closure.
-	///
-	/// The closure takes a [Request] and returns a [Response]
-	///
-	/// When registering a custom protocol with the same name, only the last regisered one will be used.
-	///
-	/// # Warning
-	///
-	/// Pages loaded from custom protocol will have different Origin on different platforms. And
-	/// servers which enforce CORS will need to add exact same Origin header in `Access-Control-Allow-Origin`
-	/// if you wish to send requests with native `fetch` and `XmlHttpRequest` APIs. Here are the
-	/// different Origin headers across platforms:
-	///
-	/// - macOS, iOS and Linux: `<scheme_name>://<path>` (so it will be `wry://path/to/page).
-	/// - Windows and Android: `http://<scheme_name>.<path>` by default (so it will be `http://wry.path/to/page`). To use `https` instead of `http`, use [`WebViewBuilderExtWindows::with_https_scheme`] and [`WebViewBuilderExtAndroid::with_https_scheme`].
-	///
-	/// # Reading assets on mobile
-	///
-	/// - Android: For loading content from the `assets` folder (which is copied to the Andorid apk) please
-	/// use the function [`with_asset_loader`] from [`WebViewBuilderExtAndroid`] instead.
-	/// This function on Android can only be used to serve assets you can embed in the binary or are
-	/// elsewhere in Android (provided the app has appropriate access), but not from the `assets`
-	/// folder which lives within the apk. For the cases where this can be used, it works the same as in macOS and Linux.
-	/// - iOS: To get the path of your assets, you can call [`CFBundle::resources_path`](https://docs.rs/core-foundation/latest/core_foundation/bundle/struct.CFBundle.html#method.resources_path). So url like `wry://assets/index.html` could get the html file in assets directory.
-	#[cfg(feature = "protocol")]
-	pub fn with_custom_protocol<F>(mut self, name: String, handler: F) -> Self
-	where
-		F: Fn(Request<Vec<u8>>) -> Response<Cow<'static, [u8]>> + 'static,
-	{
-		self.attrs.custom_protocols.insert(
-			name,
-			Box::new(move |request, responder| {
-				let http_response = handler(request);
-				responder.respond(http_response);
-			}),
-		);
-		self
-	}
+  /// Register custom loading protocols with pairs of scheme uri string and a handling
+  /// closure.
+  ///
+  /// The closure takes a [Request] and returns a [Response]
+  ///
+  /// When registering a custom protocol with the same name, only the last regisered one will be used.
+  ///
+  /// # Warning
+  ///
+  /// Pages loaded from custom protocol will have different Origin on different platforms. And
+  /// servers which enforce CORS will need to add exact same Origin header in `Access-Control-Allow-Origin`
+  /// if you wish to send requests with native `fetch` and `XmlHttpRequest` APIs. Here are the
+  /// different Origin headers across platforms:
+  ///
+  /// - macOS, iOS and Linux: `<scheme_name>://<path>` (so it will be `wry://path/to/page).
+  /// - Windows and Android: `http://<scheme_name>.<path>` by default (so it will be `http://wry.path/to/page`). To use `https` instead of `http`, use [`WebViewBuilderExtWindows::with_https_scheme`] and [`WebViewBuilderExtAndroid::with_https_scheme`].
+  ///
+  /// # Reading assets on mobile
+  ///
+  /// - Android: For loading content from the `assets` folder (which is copied to the Andorid apk) please
+  /// use the function [`with_asset_loader`] from [`WebViewBuilderExtAndroid`] instead.
+  /// This function on Android can only be used to serve assets you can embed in the binary or are
+  /// elsewhere in Android (provided the app has appropriate access), but not from the `assets`
+  /// folder which lives within the apk. For the cases where this can be used, it works the same as in macOS and Linux.
+  /// - iOS: To get the path of your assets, you can call [`CFBundle::resources_path`](https://docs.rs/core-foundation/latest/core_foundation/bundle/struct.CFBundle.html#method.resources_path). So url like `wry://assets/index.html` could get the html file in assets directory.
+  #[cfg(feature = "protocol")]
+  pub fn with_custom_protocol<F>(mut self, name: String, handler: F) -> Self
+  where
+    F: Fn(Request<Vec<u8>>) -> Response<Cow<'static, [u8]>> + 'static,
+  {
+    self.attrs.custom_protocols.insert(
+      name,
+      Box::new(move |request, responder| {
+        let http_response = handler(request);
+        responder.respond(http_response);
+      }),
+    );
+    self
+  }
 
-	/// Same as [`Self::with_custom_protocol`] but with an asynchronous responder.
-	///
-	/// When registering a custom protocol with the same name, only the last regisered one will be used.
-	///
-	/// # Examples
-	///
-	/// ```no_run
-	/// use wry::{WebViewBuilder, raw_window_handle};
-	///
-	/// # use raw_window_handle::{HasWindowHandle, WindowHandle, RawWindowHandle, Win32WindowHandle, HandleError};
-	/// # struct T;
-	/// # impl HasWindowHandle for T {
-	/// #   fn window_handle(&self) -> Result<WindowHandle<'_>, HandleError> {
-	/// #     let handle = RawWindowHandle::Win32(Win32WindowHandle::new(std::num::NonZeroIsize::new(0).unwrap()));
-	/// #     unsafe { Ok(WindowHandle::borrow_raw(handle)) }
-	/// #   }
-	/// # }
-	/// # let window = T;
-	/// WebViewBuilder::new(&window)
-	///   .with_asynchronous_custom_protocol("wry".into(), |request, responder| {
-	///     // here you can use a tokio task, thread pool or anything
-	///     // to do heavy computation to resolve your request
-	///     // e.g. downloading files, opening the camera...
-	///     std::thread::spawn(move || {
-	///       std::thread::sleep(std::time::Duration::from_secs(2));
-	///       responder.respond(http::Response::builder().body(Vec::new()).unwrap());
-	///     });
-	///   });
-	/// ```
-	#[cfg(feature = "protocol")]
-	pub fn with_asynchronous_custom_protocol<F>(mut self, name: String, handler: F) -> Self
-	where
-		F: Fn(Request<Vec<u8>>, RequestAsyncResponder) + 'static,
-	{
-		self.attrs.custom_protocols.insert(name, Box::new(handler));
-		self
-	}
+  /// Same as [`Self::with_custom_protocol`] but with an asynchronous responder.
+  ///
+  /// When registering a custom protocol with the same name, only the last regisered one will be used.
+  ///
+  /// # Examples
+  ///
+  /// ```no_run
+  /// use wry::{WebViewBuilder, raw_window_handle};
+  ///
+  /// # use raw_window_handle::{HasWindowHandle, WindowHandle, RawWindowHandle, Win32WindowHandle, HandleError};
+  /// # struct T;
+  /// # impl HasWindowHandle for T {
+  /// #   fn window_handle(&self) -> Result<WindowHandle<'_>, HandleError> {
+  /// #     let handle = RawWindowHandle::Win32(Win32WindowHandle::new(std::num::NonZeroIsize::new(0).unwrap()));
+  /// #     unsafe { Ok(WindowHandle::borrow_raw(handle)) }
+  /// #   }
+  /// # }
+  /// # let window = T;
+  /// WebViewBuilder::new(&window)
+  ///   .with_asynchronous_custom_protocol("wry".into(), |request, responder| {
+  ///     // here you can use a tokio task, thread pool or anything
+  ///     // to do heavy computation to resolve your request
+  ///     // e.g. downloading files, opening the camera...
+  ///     std::thread::spawn(move || {
+  ///       std::thread::sleep(std::time::Duration::from_secs(2));
+  ///       responder.respond(http::Response::builder().body(Vec::new()).unwrap());
+  ///     });
+  ///   });
+  /// ```
+  #[cfg(feature = "protocol")]
+  pub fn with_asynchronous_custom_protocol<F>(mut self, name: String, handler: F) -> Self
+  where
+    F: Fn(Request<Vec<u8>>, RequestAsyncResponder) + 'static,
+  {
+    self.attrs.custom_protocols.insert(name, Box::new(handler));
+    self
+  }
 
-	/// Set the IPC handler to receive the message from Javascript on webview
-	/// using `window.ipc.postMessage("insert_message_here")` to host Rust code.
-	///
-	/// ## Platform-specific
-	///
-	/// - **Linux / Android**: The request URL is not supported on iframes and the main frame URL is used instead.
-	pub fn with_ipc_handler<F>(mut self, handler: F) -> Self
-	where
-		F: Fn(Request<String>) + 'static,
-	{
-		self.attrs.ipc_handler = Some(Box::new(handler));
-		self
-	}
+  /// Set the IPC handler to receive the message from Javascript on webview
+  /// using `window.ipc.postMessage("insert_message_here")` to host Rust code.
+  ///
+  /// ## Platform-specific
+  ///
+  /// - **Linux / Android**: The request URL is not supported on iframes and the main frame URL is used instead.
+  pub fn with_ipc_handler<F>(mut self, handler: F) -> Self
+  where
+    F: Fn(Request<String>) + 'static,
+  {
+    self.attrs.ipc_handler = Some(Box::new(handler));
+    self
+  }
 
-	/// Set a handler closure to process incoming [`DragDropEvent`] of the webview.
-	///
-	/// # Blocking OS Default Behavior
-	/// Return `true` in the callback to block the OS' default behavior.
-	///
-	/// Note, that if you do block this behavior, it won't be possible to drop files on `<input type="file">` forms.
-	/// Also note, that it's not possible to manually set the value of a `<input type="file">` via JavaScript for security reasons.
-	#[cfg(feature = "drag-drop")]
-	#[cfg_attr(docsrs, doc(cfg(feature = "drag-drop")))]
-	pub fn with_drag_drop_handler<F>(mut self, handler: F) -> Self
-	where
-		F: Fn(DragDropEvent) -> bool + 'static,
-	{
-		self.attrs.drag_drop_handler = Some(Box::new(handler));
-		self
-	}
+  /// Set a handler closure to process incoming [`DragDropEvent`] of the webview.
+  ///
+  /// # Blocking OS Default Behavior
+  /// Return `true` in the callback to block the OS' default behavior.
+  ///
+  /// Note, that if you do block this behavior, it won't be possible to drop files on `<input type="file">` forms.
+  /// Also note, that it's not possible to manually set the value of a `<input type="file">` via JavaScript for security reasons.
+  #[cfg(feature = "drag-drop")]
+  #[cfg_attr(docsrs, doc(cfg(feature = "drag-drop")))]
+  pub fn with_drag_drop_handler<F>(mut self, handler: F) -> Self
+  where
+    F: Fn(DragDropEvent) -> bool + 'static,
+  {
+    self.attrs.drag_drop_handler = Some(Box::new(handler));
+    self
+  }
 
-	/// Load the provided URL with given headers when the builder calling [`WebViewBuilder::build`] to create the [`WebView`].
-	/// The provided URL must be valid.
-	///
-	/// ## Note
-	///
-	/// Data URLs are not supported, use [`html`](Self::with_html) option instead.
-	pub fn with_url_and_headers(
-		mut self,
-		url: impl Into<String>,
-		headers: http::HeaderMap,
-	) -> Self {
-		self.attrs.url = Some(url.into());
-		self.attrs.headers = Some(headers);
-		self
-	}
+  /// Load the provided URL with given headers when the builder calling [`WebViewBuilder::build`] to create the [`WebView`].
+  /// The provided URL must be valid.
+  ///
+  /// ## Note
+  ///
+  /// Data URLs are not supported, use [`html`](Self::with_html) option instead.
+  pub fn with_url_and_headers(mut self, url: impl Into<String>, headers: http::HeaderMap) -> Self {
+    self.attrs.url = Some(url.into());
+    self.attrs.headers = Some(headers);
+    self
+  }
 
-	/// Load the provided URL when the builder calling [`WebViewBuilder::build`] to create the [`WebView`].
-	/// The provided URL must be valid.
-	///
-	/// ## Note
-	///
-	/// Data URLs are not supported, use [`html`](Self::with_html) option instead.
-	pub fn with_url(mut self, url: impl Into<String>) -> Self {
-		self.attrs.url = Some(url.into());
-		self.attrs.headers = None;
-		self
-	}
+  /// Load the provided URL when the builder calling [`WebViewBuilder::build`] to create the [`WebView`].
+  /// The provided URL must be valid.
+  ///
+  /// ## Note
+  ///
+  /// Data URLs are not supported, use [`html`](Self::with_html) option instead.
+  pub fn with_url(mut self, url: impl Into<String>) -> Self {
+    self.attrs.url = Some(url.into());
+    self.attrs.headers = None;
+    self
+  }
 
-	/// Set headers used when loading the requested [`url`](Self::with_url).
-	pub fn with_headers(mut self, headers: http::HeaderMap) -> Self {
-		self.attrs.headers = Some(headers);
-		self
-	}
+  /// Set headers used when loading the requested [`url`](Self::with_url).
+  pub fn with_headers(mut self, headers: http::HeaderMap) -> Self {
+    self.attrs.headers = Some(headers);
+    self
+  }
 
-	/// Load the provided HTML string when the builder calling [`WebViewBuilder::build`] to create the [`WebView`].
-	/// This will be ignored if `url` is provided.
-	///
-	/// # Warning
-	///
-	/// The Page loaded from html string will have `null` origin.
-	///
-	/// ## PLatform-specific:
-	///
-	/// - **Windows:** the string can not be larger than 2 MB (2 * 1024 * 1024 bytes) in total size
-	pub fn with_html(mut self, html: impl Into<String>) -> Self {
-		self.attrs.html = Some(html.into());
-		self
-	}
+  /// Load the provided HTML string when the builder calling [`WebViewBuilder::build`] to create the [`WebView`].
+  /// This will be ignored if `url` is provided.
+  ///
+  /// # Warning
+  ///
+  /// The Page loaded from html string will have `null` origin.
+  ///
+  /// ## PLatform-specific:
+  ///
+  /// - **Windows:** the string can not be larger than 2 MB (2 * 1024 * 1024 bytes) in total size
+  pub fn with_html(mut self, html: impl Into<String>) -> Self {
+    self.attrs.html = Some(html.into());
+    self
+  }
 
-	/// Set the web context that can be shared with multiple [`WebView`]s.
-	pub fn with_web_context(mut self, web_context: &'a mut WebContext) -> Self {
-		self.web_context = Some(web_context);
-		self
-	}
+  /// Set the web context that can be shared with multiple [`WebView`]s.
+  pub fn with_web_context(mut self, web_context: &'a mut WebContext) -> Self {
+    self.web_context = Some(web_context);
+    self
+  }
 
-	/// Set a custom [user-agent](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/User-Agent) for the WebView.
-	///
-	/// ## Platform-specific
-	///
-	/// - Windows: Requires WebView2 Runtime version 86.0.616.0 or higher, does nothing on older versions,
-	/// see https://learn.microsoft.com/en-us/microsoft-edge/webview2/release-notes/archive?tabs=dotnetcsharp#10790-prerelease
-	pub fn with_user_agent(mut self, user_agent: &str) -> Self {
-		self.attrs.user_agent = Some(user_agent.to_string());
-		self
-	}
+  /// Set a custom [user-agent](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/User-Agent) for the WebView.
+  ///
+  /// ## Platform-specific
+  ///
+  /// - Windows: Requires WebView2 Runtime version 86.0.616.0 or higher, does nothing on older versions,
+  /// see https://learn.microsoft.com/en-us/microsoft-edge/webview2/release-notes/archive?tabs=dotnetcsharp#10790-prerelease
+  pub fn with_user_agent(mut self, user_agent: &str) -> Self {
+    self.attrs.user_agent = Some(user_agent.to_string());
+    self
+  }
 
-	/// Enable or disable web inspector which is usually called devtools.
-	///
-	/// Note this only enables devtools to the webview. To open it, you can call
-	/// [`WebView::open_devtools`], or right click the page and open it from the context menu.
-	///
-	/// ## Platform-specific
-	///
-	/// - macOS: This will call private functions on **macOS**. It is enabled in **debug** builds,
-	/// but requires `devtools` feature flag to actually enable it in **release** builds.
-	/// - Android: Open `chrome://inspect/#devices` in Chrome to get the devtools window. Wry's `WebView` devtools API isn't supported on Android.
-	/// - iOS: Open Safari > Develop > [Your Device Name] > [Your WebView] to get the devtools window.
-	pub fn with_devtools(mut self, devtools: bool) -> Self {
-		self.attrs.devtools = devtools;
-		self
-	}
+  /// Enable or disable web inspector which is usually called devtools.
+  ///
+  /// Note this only enables devtools to the webview. To open it, you can call
+  /// [`WebView::open_devtools`], or right click the page and open it from the context menu.
+  ///
+  /// ## Platform-specific
+  ///
+  /// - macOS: This will call private functions on **macOS**. It is enabled in **debug** builds,
+  /// but requires `devtools` feature flag to actually enable it in **release** builds.
+  /// - Android: Open `chrome://inspect/#devices` in Chrome to get the devtools window. Wry's `WebView` devtools API isn't supported on Android.
+  /// - iOS: Open Safari > Develop > [Your Device Name] > [Your WebView] to get the devtools window.
+  pub fn with_devtools(mut self, devtools: bool) -> Self {
+    self.attrs.devtools = devtools;
+    self
+  }
 
-	/// Whether page zooming by hotkeys or gestures is enabled
-	///
-	/// ## Platform-specific
-	///
-	/// - Windows: Setting to `false` can't disable pinch zoom on WebView2 Runtime version before 91.0.865.0,
-	/// see https://learn.microsoft.com/en-us/microsoft-edge/webview2/release-notes/archive?tabs=dotnetcsharp#10865-prerelease
-	///
-	/// - **macOS / Linux / Android / iOS**: Unsupported
-	pub fn with_hotkeys_zoom(mut self, zoom: bool) -> Self {
-		self.attrs.zoom_hotkeys_enabled = zoom;
-		self
-	}
+  /// Whether page zooming by hotkeys or gestures is enabled
+  ///
+  /// ## Platform-specific
+  ///
+  /// - Windows: Setting to `false` can't disable pinch zoom on WebView2 Runtime version before 91.0.865.0,
+  /// see https://learn.microsoft.com/en-us/microsoft-edge/webview2/release-notes/archive?tabs=dotnetcsharp#10865-prerelease
+  ///
+  /// - **macOS / Linux / Android / iOS**: Unsupported
+  pub fn with_hotkeys_zoom(mut self, zoom: bool) -> Self {
+    self.attrs.zoom_hotkeys_enabled = zoom;
+    self
+  }
 
-	/// Set a navigation handler to decide if incoming url is allowed to navigate.
-	///
-	/// The closure take a `String` parameter as url and returns a `bool` to determine whether the navigation should happen.
-	/// `true` allows to navigate and `false` does not.
-	pub fn with_navigation_handler(mut self, callback: impl Fn(String) -> bool + 'static) -> Self {
-		self.attrs.navigation_handler = Some(Box::new(callback));
-		self
-	}
+  /// Set a navigation handler to decide if incoming url is allowed to navigate.
+  ///
+  /// The closure take a `String` parameter as url and returns a `bool` to determine whether the navigation should happen.
+  /// `true` allows to navigate and `false` does not.
+  pub fn with_navigation_handler(mut self, callback: impl Fn(String) -> bool + 'static) -> Self {
+    self.attrs.navigation_handler = Some(Box::new(callback));
+    self
+  }
 
-	/// Set a download started handler to manage incoming downloads.
-	///
-	//// The closure takes two parameters, the first is a `String` representing the url being downloaded from and and the
-	/// second is a mutable `PathBuf` reference that (possibly) represents where the file will be downloaded to. The latter
-	/// parameter can be used to set the download location by assigning a new path to it, the assigned path _must_ be
-	/// absolute. The closure returns a `bool` to allow or deny the download.
-	pub fn with_download_started_handler(
-		mut self,
-		started_handler: impl FnMut(String, &mut PathBuf) -> bool + 'static,
-	) -> Self {
-		self.attrs.download_started_handler = Some(Box::new(started_handler));
-		self
-	}
+  /// Set a download started handler to manage incoming downloads.
+  ///
+  //// The closure takes two parameters, the first is a `String` representing the url being downloaded from and and the
+  /// second is a mutable `PathBuf` reference that (possibly) represents where the file will be downloaded to. The latter
+  /// parameter can be used to set the download location by assigning a new path to it, the assigned path _must_ be
+  /// absolute. The closure returns a `bool` to allow or deny the download.
+  pub fn with_download_started_handler(
+    mut self,
+    started_handler: impl FnMut(String, &mut PathBuf) -> bool + 'static,
+  ) -> Self {
+    self.attrs.download_started_handler = Some(Box::new(started_handler));
+    self
+  }
 
-	/// Sets a download completion handler to manage downloads that have finished.
-	///
-	/// The closure is fired when the download completes, whether it was successful or not.
-	/// The closure takes a `String` representing the URL of the original download request, an `Option<PathBuf>`
-	/// potentially representing the filesystem path the file was downloaded to, and a `bool` indicating if the download
-	/// succeeded. A value of `None` being passed instead of a `PathBuf` does not necessarily indicate that the download
-	/// did not succeed, and may instead indicate some other failure, always check the third parameter if you need to
-	/// know if the download succeeded.
-	///
-	/// ## Platform-specific:
-	///
-	/// - **macOS**: The second parameter indicating the path the file was saved to, is always empty,
-	/// due to API limitations.
-	pub fn with_download_completed_handler(
-		mut self,
-		download_completed_handler: impl Fn(String, Option<PathBuf>, bool) + 'static,
-	) -> Self {
-		self.attrs.download_completed_handler = Some(Rc::new(download_completed_handler));
-		self
-	}
+  /// Sets a download completion handler to manage downloads that have finished.
+  ///
+  /// The closure is fired when the download completes, whether it was successful or not.
+  /// The closure takes a `String` representing the URL of the original download request, an `Option<PathBuf>`
+  /// potentially representing the filesystem path the file was downloaded to, and a `bool` indicating if the download
+  /// succeeded. A value of `None` being passed instead of a `PathBuf` does not necessarily indicate that the download
+  /// did not succeed, and may instead indicate some other failure, always check the third parameter if you need to
+  /// know if the download succeeded.
+  ///
+  /// ## Platform-specific:
+  ///
+  /// - **macOS**: The second parameter indicating the path the file was saved to, is always empty,
+  /// due to API limitations.
+  pub fn with_download_completed_handler(
+    mut self,
+    download_completed_handler: impl Fn(String, Option<PathBuf>, bool) + 'static,
+  ) -> Self {
+    self.attrs.download_completed_handler = Some(Rc::new(download_completed_handler));
+    self
+  }
 
-	/// Enables clipboard access for the page rendered on **Linux** and **Windows**.
-	///
-	/// macOS doesn't provide such method and is always enabled by default. But your app will still need to add menu
-	/// item accelerators to use the clipboard shortcuts.
-	pub fn with_clipboard(mut self, clipboard: bool) -> Self {
-		self.attrs.clipboard = clipboard;
-		self
-	}
+  /// Enables clipboard access for the page rendered on **Linux** and **Windows**.
+  ///
+  /// macOS doesn't provide such method and is always enabled by default. But your app will still need to add menu
+  /// item accelerators to use the clipboard shortcuts.
+  pub fn with_clipboard(mut self, clipboard: bool) -> Self {
+    self.attrs.clipboard = clipboard;
+    self
+  }
 
-	/// Set a new window request handler to decide if incoming url is allowed to be opened.
-	///
-	/// The closure take a `String` parameter as url and return `bool` to determine whether the window should open.
-	/// `true` allows to open and `false` does not.
-	pub fn with_new_window_req_handler(
-		mut self,
-		callback: impl Fn(String) -> bool + 'static,
-	) -> Self {
-		self.attrs.new_window_req_handler = Some(Box::new(callback));
-		self
-	}
+  /// Set a new window request handler to decide if incoming url is allowed to be opened.
+  ///
+  /// The closure take a `String` parameter as url and return `bool` to determine whether the window should open.
+  /// `true` allows to open and `false` does not.
+  pub fn with_new_window_req_handler(
+    mut self,
+    callback: impl Fn(String) -> bool + 'static,
+  ) -> Self {
+    self.attrs.new_window_req_handler = Some(Box::new(callback));
+    self
+  }
 
-	/// Sets whether clicking an inactive window also clicks through to the webview. Default is `false`.
-	///
-	/// ## Platform-specific
-	///
-	/// This configuration only impacts macOS.
-	pub fn with_accept_first_mouse(mut self, accept_first_mouse: bool) -> Self {
-		self.attrs.accept_first_mouse = accept_first_mouse;
-		self
-	}
+  /// Sets whether clicking an inactive window also clicks through to the webview. Default is `false`.
+  ///
+  /// ## Platform-specific
+  ///
+  /// This configuration only impacts macOS.
+  pub fn with_accept_first_mouse(mut self, accept_first_mouse: bool) -> Self {
+    self.attrs.accept_first_mouse = accept_first_mouse;
+    self
+  }
 
-	/// Set a handler closure to process the change of the webview's document title.
-	pub fn with_document_title_changed_handler(
-		mut self,
-		callback: impl Fn(String) + 'static,
-	) -> Self {
-		self.attrs.document_title_changed_handler = Some(Box::new(callback));
-		self
-	}
+  /// Set a handler closure to process the change of the webview's document title.
+  pub fn with_document_title_changed_handler(
+    mut self,
+    callback: impl Fn(String) + 'static,
+  ) -> Self {
+    self.attrs.document_title_changed_handler = Some(Box::new(callback));
+    self
+  }
 
-	/// Run the WebView with incognito mode. Note that WebContext will be ingored if incognito is
-	/// enabled.
-	///
-	/// ## Platform-specific:
-	///
-	/// - Windows: Requires WebView2 Runtime version 101.0.1210.39 or higher, does nothing on older versions,
-	/// see https://learn.microsoft.com/en-us/microsoft-edge/webview2/release-notes/archive?tabs=dotnetcsharp#10121039
-	/// - **Android:** Unsupported yet.
-	pub fn with_incognito(mut self, incognito: bool) -> Self {
-		self.attrs.incognito = incognito;
-		self
-	}
+  /// Run the WebView with incognito mode. Note that WebContext will be ingored if incognito is
+  /// enabled.
+  ///
+  /// ## Platform-specific:
+  ///
+  /// - Windows: Requires WebView2 Runtime version 101.0.1210.39 or higher, does nothing on older versions,
+  /// see https://learn.microsoft.com/en-us/microsoft-edge/webview2/release-notes/archive?tabs=dotnetcsharp#10121039
+  /// - **Android:** Unsupported yet.
+  pub fn with_incognito(mut self, incognito: bool) -> Self {
+    self.attrs.incognito = incognito;
+    self
+  }
 
-	/// Set a handler to process page loading events.
-	pub fn with_on_page_load_handler(
-		mut self,
-		handler: impl Fn(PageLoadEvent, String) + 'static,
-	) -> Self {
-		self.attrs.on_page_load_handler = Some(Box::new(handler));
-		self
-	}
+  /// Set a handler to process page loading events.
+  pub fn with_on_page_load_handler(
+    mut self,
+    handler: impl Fn(PageLoadEvent, String) + 'static,
+  ) -> Self {
+    self.attrs.on_page_load_handler = Some(Box::new(handler));
+    self
+  }
 
-	/// Set a proxy configuration for the webview.
-	///
-	/// - **macOS**: Requires macOS 14.0+ and the `mac-proxy` feature flag to be enabled. Supports HTTP CONNECT and SOCKSv5 proxies.
-	/// - **Windows / Linux**: Supports HTTP CONNECT and SOCKSv5 proxies.
-	/// - **Android / iOS:** Not supported.
-	pub fn with_proxy_config(mut self, configuration: ProxyConfig) -> Self {
-		self.attrs.proxy_config = Some(configuration);
-		self
-	}
+  /// Set a proxy configuration for the webview.
+  ///
+  /// - **macOS**: Requires macOS 14.0+ and the `mac-proxy` feature flag to be enabled. Supports HTTP CONNECT and SOCKSv5 proxies.
+  /// - **Windows / Linux**: Supports HTTP CONNECT and SOCKSv5 proxies.
+  /// - **Android / iOS:** Not supported.
+  pub fn with_proxy_config(mut self, configuration: ProxyConfig) -> Self {
+    self.attrs.proxy_config = Some(configuration);
+    self
+  }
 
-	/// Set whether the webview should be focused when created.
-	///
-	/// ## Platform-specific:
-	///
-	/// - **macOS / Android / iOS:** Unsupported.
-	pub fn with_focused(mut self, focused: bool) -> Self {
-		self.attrs.focused = focused;
-		self
-	}
+  /// Set whether the webview should be focused when created.
+  ///
+  /// ## Platform-specific:
+  ///
+  /// - **macOS / Android / iOS:** Unsupported.
+  pub fn with_focused(mut self, focused: bool) -> Self {
+    self.attrs.focused = focused;
+    self
+  }
 
-	/// Specify the webview position relative to its parent if it will be created as a child
-	/// or if created using [`WebViewBuilderExtUnix::new_gtk`] with [`gtk::Fixed`].
-	///
-	/// Defaults to `x: 0, y: 0, width: 200, height: 200`.
-	pub fn with_bounds(mut self, bounds: Rect) -> Self {
-		self.attrs.bounds.replace(bounds);
-		self
-	}
+  /// Specify the webview position relative to its parent if it will be created as a child
+  /// or if created using [`WebViewBuilderExtUnix::new_gtk`] with [`gtk::Fixed`].
+  ///
+  /// Defaults to `x: 0, y: 0, width: 200, height: 200`.
+  pub fn with_bounds(mut self, bounds: Rect) -> Self {
+    self.attrs.bounds.replace(bounds);
+    self
+  }
 
-	/// Consume the builder and create the [`WebView`].
-	///
-	/// # Panics:
-	///
-	/// - Panics if the provided handle was not support or invalid.
-	/// - Panics on Linux, if [`gtk::init`] was not called in this thread.
-	pub fn build(self) -> Result<WebView> {
-		let webview = if let Some(window) = &self.window {
-			if self.as_child {
-				InnerWebView::new_as_child(
-					window,
-					self.attrs,
-					self.platform_specific,
-					self.web_context,
-				)?
-			} else {
-				InnerWebView::new(window, self.attrs, self.platform_specific, self.web_context)?
-			}
-		} else {
-			#[cfg(gtk)]
-			if let Some(widget) = self.gtk_widget {
-				InnerWebView::new_gtk(widget, self.attrs, self.platform_specific, self.web_context)?
-			} else {
-				unreachable!()
-			}
+  /// Consume the builder and create the [`WebView`].
+  ///
+  /// # Panics:
+  ///
+  /// - Panics if the provided handle was not support or invalid.
+  /// - Panics on Linux, if [`gtk::init`] was not called in this thread.
+  pub fn build(self) -> Result<WebView> {
+    let webview = if let Some(window) = &self.window {
+      if self.as_child {
+        InnerWebView::new_as_child(window, self.attrs, self.platform_specific, self.web_context)?
+      } else {
+        InnerWebView::new(window, self.attrs, self.platform_specific, self.web_context)?
+      }
+    } else {
+      #[cfg(gtk)]
+      if let Some(widget) = self.gtk_widget {
+        InnerWebView::new_gtk(widget, self.attrs, self.platform_specific, self.web_context)?
+      } else {
+        unreachable!()
+      }
 
-			#[cfg(not(gtk))]
-			unreachable!()
-		};
+      #[cfg(not(gtk))]
+      unreachable!()
+    };
 
-		Ok(WebView { webview })
-	}
+    Ok(WebView { webview })
+  }
 }
 
 #[cfg(any(target_os = "macos", target_os = "ios",))]
 #[derive(Clone)]
 pub(crate) struct PlatformSpecificWebViewAttributes {
-	data_store_identifier: Option<[u8; 16]>,
+  data_store_identifier: Option<[u8; 16]>,
 }
 
 #[cfg(any(target_os = "macos", target_os = "ios",))]
 impl Default for PlatformSpecificWebViewAttributes {
-	fn default() -> Self {
-		Self { data_store_identifier: None }
-	}
+  fn default() -> Self {
+    Self {
+      data_store_identifier: None,
+    }
+  }
 }
 
 #[cfg(any(target_os = "macos", target_os = "ios",))]
 pub trait WebViewBuilderExtDarwin {
-	/// Initialize the WebView with a custom data store identifier.
-	/// Can be used as a replacement for data_directory not being available in WKWebView.
-	///
-	/// - **macOS / iOS**: Available on macOS >= 14 and iOS >= 17
-	fn with_data_store_identifier(self, identifier: [u8; 16]) -> Self;
+  /// Initialize the WebView with a custom data store identifier.
+  /// Can be used as a replacement for data_directory not being available in WKWebView.
+  ///
+  /// - **macOS / iOS**: Available on macOS >= 14 and iOS >= 17
+  fn with_data_store_identifier(self, identifier: [u8; 16]) -> Self;
 }
 
 #[cfg(any(target_os = "macos", target_os = "ios",))]
 impl WebViewBuilderExtDarwin for WebViewBuilder<'_> {
-	fn with_data_store_identifier(mut self, identifier: [u8; 16]) -> Self {
-		self.platform_specific.data_store_identifier = Some(identifier);
-		self
-	}
+  fn with_data_store_identifier(mut self, identifier: [u8; 16]) -> Self {
+    self.platform_specific.data_store_identifier = Some(identifier);
+    self
+  }
 }
 
 #[cfg(windows)]
 #[derive(Clone)]
 pub(crate) struct PlatformSpecificWebViewAttributes {
-	additional_browser_args: Option<String>,
-	browser_accelerator_keys: bool,
-	theme: Option<Theme>,
-	use_https: bool,
-	scroll_bar_style: ScrollBarStyle,
-	browser_extensions_enabled: bool,
+  additional_browser_args: Option<String>,
+  browser_accelerator_keys: bool,
+  theme: Option<Theme>,
+  use_https: bool,
+  scroll_bar_style: ScrollBarStyle,
+  browser_extensions_enabled: bool,
 }
 
 #[cfg(windows)]
 impl Default for PlatformSpecificWebViewAttributes {
-	fn default() -> Self {
-		Self {
-			additional_browser_args: None,
-			browser_accelerator_keys: true, // This is WebView2's default behavior
-			theme: None,
-			use_https: false, // To match macOS & Linux behavior in the context of mixed content.
-			scroll_bar_style: ScrollBarStyle::default(),
-			browser_extensions_enabled: false,
-		}
-	}
+  fn default() -> Self {
+    Self {
+      additional_browser_args: None,
+      browser_accelerator_keys: true, // This is WebView2's default behavior
+      theme: None,
+      use_https: false, // To match macOS & Linux behavior in the context of mixed content.
+      scroll_bar_style: ScrollBarStyle::default(),
+      browser_extensions_enabled: false,
+    }
+  }
 }
 
 #[cfg(windows)]
 pub trait WebViewBuilderExtWindows {
-	/// Pass additional args to WebView2 upon creating the webview.
-	///
-	/// ## Warning
-	///
-	/// - Webview instances with different browser arguments must also have different [data directories](struct.WebContext.html#method.new).
-	/// - By default wry passes `--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection`
-	/// `--autoplay-policy=no-user-gesture-required` if autoplay is enabled
-	/// and `--proxy-server=<scheme>://<host>:<port>` if a proxy is set.
-	/// so if you use this method, you have to add these arguments yourself if you want to keep the same behavior.
-	fn with_additional_browser_args<S: Into<String>>(self, additional_args: S) -> Self;
+  /// Pass additional args to WebView2 upon creating the webview.
+  ///
+  /// ## Warning
+  ///
+  /// - Webview instances with different browser arguments must also have different [data directories](struct.WebContext.html#method.new).
+  /// - By default wry passes `--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection`
+  /// `--autoplay-policy=no-user-gesture-required` if autoplay is enabled
+  /// and `--proxy-server=<scheme>://<host>:<port>` if a proxy is set.
+  /// so if you use this method, you have to add these arguments yourself if you want to keep the same behavior.
+  fn with_additional_browser_args<S: Into<String>>(self, additional_args: S) -> Self;
 
-	/// Determines whether browser-specific accelerator keys are enabled. When this setting is set to
-	/// `false`, it disables all accelerator keys that access features specific to a web browser.
-	/// The default value is `true`. See the following link to know more details.
-	///
-	/// Setting to `false` does nothing on WebView2 Runtime version before 92.0.902.0,
-	/// see https://learn.microsoft.com/en-us/microsoft-edge/webview2/release-notes/archive?tabs=dotnetcsharp#10824-prerelease
-	///
-	/// <https://learn.microsoft.com/en-us/microsoft-edge/webview2/reference/winrt/microsoft_web_webview2_core/corewebview2settings#arebrowseracceleratorkeysenabled>
-	fn with_browser_accelerator_keys(self, enabled: bool) -> Self;
+  /// Determines whether browser-specific accelerator keys are enabled. When this setting is set to
+  /// `false`, it disables all accelerator keys that access features specific to a web browser.
+  /// The default value is `true`. See the following link to know more details.
+  ///
+  /// Setting to `false` does nothing on WebView2 Runtime version before 92.0.902.0,
+  /// see https://learn.microsoft.com/en-us/microsoft-edge/webview2/release-notes/archive?tabs=dotnetcsharp#10824-prerelease
+  ///
+  /// <https://learn.microsoft.com/en-us/microsoft-edge/webview2/reference/winrt/microsoft_web_webview2_core/corewebview2settings#arebrowseracceleratorkeysenabled>
+  fn with_browser_accelerator_keys(self, enabled: bool) -> Self;
 
-	/// Specifies the theme of webview2. This affects things like `prefers-color-scheme`.
-	///
-	/// Defaults to [`Theme::Auto`] which will follow the OS defaults.
-	///
-	/// Requires WebView2 Runtime version 101.0.1210.39 or higher, does nothing on older versions,
-	/// see https://learn.microsoft.com/en-us/microsoft-edge/webview2/release-notes/archive?tabs=dotnetcsharp#10121039
-	fn with_theme(self, theme: Theme) -> Self;
+  /// Specifies the theme of webview2. This affects things like `prefers-color-scheme`.
+  ///
+  /// Defaults to [`Theme::Auto`] which will follow the OS defaults.
+  ///
+  /// Requires WebView2 Runtime version 101.0.1210.39 or higher, does nothing on older versions,
+  /// see https://learn.microsoft.com/en-us/microsoft-edge/webview2/release-notes/archive?tabs=dotnetcsharp#10121039
+  fn with_theme(self, theme: Theme) -> Self;
 
-	/// Determines whether the custom protocols should use `https://<scheme>.path/to/page` instead of the default `http://<scheme>.path/to/page`.
-	///
-	/// Using a `http` scheme will allow mixed content when trying to fetch `http` endpoints
-	/// and is therefore less secure but will match the behavior of the `<scheme>://path/to/page` protocols used on macOS and Linux.
-	///
-	/// The default value is `false`.
-	fn with_https_scheme(self, enabled: bool) -> Self;
+  /// Determines whether the custom protocols should use `https://<scheme>.path/to/page` instead of the default `http://<scheme>.path/to/page`.
+  ///
+  /// Using a `http` scheme will allow mixed content when trying to fetch `http` endpoints
+  /// and is therefore less secure but will match the behavior of the `<scheme>://path/to/page` protocols used on macOS and Linux.
+  ///
+  /// The default value is `false`.
+  fn with_https_scheme(self, enabled: bool) -> Self;
 
-	/// Specifies the native scrollbar style to use with webview2.
-	/// CSS styles that modify the scrollbar are applied on top of the native appearance configured here.
-	///
-	/// Defaults to [`ScrollbarStyle::Default`] which is the browser default used by Microsoft Edge.
-	///
-	/// Requires WebView2 Runtime version 125.0.2535.41 or higher, does nothing on older versions,
-	/// see https://learn.microsoft.com/en-us/microsoft-edge/webview2/release-notes/?tabs=dotnetcsharp#10253541
-	fn with_scroll_bar_style(self, style: ScrollBarStyle) -> Self;
+  /// Specifies the native scrollbar style to use with webview2.
+  /// CSS styles that modify the scrollbar are applied on top of the native appearance configured here.
+  ///
+  /// Defaults to [`ScrollbarStyle::Default`] which is the browser default used by Microsoft Edge.
+  ///
+  /// Requires WebView2 Runtime version 125.0.2535.41 or higher, does nothing on older versions,
+  /// see https://learn.microsoft.com/en-us/microsoft-edge/webview2/release-notes/?tabs=dotnetcsharp#10253541
+  fn with_scroll_bar_style(self, style: ScrollBarStyle) -> Self;
 
-	/// Determines whether the ability to install and enable extensions is enabled.
-	///
-	/// By default, extensions are disabled.
-	///
-	/// Requires WebView2 Runtime version 1.0.2210.55 or higher, does nothing on older versions,
-	/// see https://learn.microsoft.com/en-us/microsoft-edge/webview2/release-notes/archive?tabs=dotnetcsharp#10221055
-	fn with_browser_extensions_enabled(self, enabled: bool) -> Self;
+  /// Determines whether the ability to install and enable extensions is enabled.
+  ///
+  /// By default, extensions are disabled.
+  ///
+  /// Requires WebView2 Runtime version 1.0.2210.55 or higher, does nothing on older versions,
+  /// see https://learn.microsoft.com/en-us/microsoft-edge/webview2/release-notes/archive?tabs=dotnetcsharp#10221055
+  fn with_browser_extensions_enabled(self, enabled: bool) -> Self;
 }
 
 #[cfg(windows)]
 impl WebViewBuilderExtWindows for WebViewBuilder<'_> {
-	fn with_additional_browser_args<S: Into<String>>(mut self, additional_args: S) -> Self {
-		self.platform_specific.additional_browser_args = Some(additional_args.into());
-		self
-	}
+  fn with_additional_browser_args<S: Into<String>>(mut self, additional_args: S) -> Self {
+    self.platform_specific.additional_browser_args = Some(additional_args.into());
+    self
+  }
 
-	fn with_browser_accelerator_keys(mut self, enabled: bool) -> Self {
-		self.platform_specific.browser_accelerator_keys = enabled;
-		self
-	}
+  fn with_browser_accelerator_keys(mut self, enabled: bool) -> Self {
+    self.platform_specific.browser_accelerator_keys = enabled;
+    self
+  }
 
-	fn with_theme(mut self, theme: Theme) -> Self {
-		self.platform_specific.theme = Some(theme);
-		self
-	}
+  fn with_theme(mut self, theme: Theme) -> Self {
+    self.platform_specific.theme = Some(theme);
+    self
+  }
 
-	fn with_https_scheme(mut self, enabled: bool) -> Self {
-		self.platform_specific.use_https = enabled;
-		self
-	}
+  fn with_https_scheme(mut self, enabled: bool) -> Self {
+    self.platform_specific.use_https = enabled;
+    self
+  }
 
-	fn with_scroll_bar_style(mut self, style: ScrollBarStyle) -> Self {
-		self.platform_specific.scroll_bar_style = style;
-		self
-	}
+  fn with_scroll_bar_style(mut self, style: ScrollBarStyle) -> Self {
+    self.platform_specific.scroll_bar_style = style;
+    self
+  }
 
-	fn with_browser_extensions_enabled(mut self, enabled: bool) -> Self {
-		self.platform_specific.browser_extensions_enabled = enabled;
-		self
-	}
+  fn with_browser_extensions_enabled(mut self, enabled: bool) -> Self {
+    self.platform_specific.browser_extensions_enabled = enabled;
+    self
+  }
 }
 
 #[cfg(target_os = "android")]
 #[derive(Default)]
 pub(crate) struct PlatformSpecificWebViewAttributes {
-	on_webview_created:
-		Option<Box<dyn Fn(prelude::Context) -> std::result::Result<(), jni::errors::Error> + Send>>,
-	with_asset_loader: bool,
-	asset_loader_domain: Option<String>,
-	https_scheme: bool,
+  on_webview_created:
+    Option<Box<dyn Fn(prelude::Context) -> std::result::Result<(), jni::errors::Error> + Send>>,
+  with_asset_loader: bool,
+  asset_loader_domain: Option<String>,
+  https_scheme: bool,
 }
 
 #[cfg(target_os = "android")]
 pub trait WebViewBuilderExtAndroid {
-	fn on_webview_created<
-		F: Fn(prelude::Context<'_, '_>) -> std::result::Result<(), jni::errors::Error>
-			+ Send
-			+ 'static,
-	>(
-		self,
-		f: F,
-	) -> Self;
+  fn on_webview_created<
+    F: Fn(prelude::Context<'_, '_>) -> std::result::Result<(), jni::errors::Error> + Send + 'static,
+  >(
+    self,
+    f: F,
+  ) -> Self;
 
-	/// Use [WebViewAssetLoader](https://developer.android.com/reference/kotlin/androidx/webkit/WebViewAssetLoader)
-	/// to load assets from Android's `asset` folder when using `with_url` as `<protocol>://assets/` (e.g.:
-	/// `wry://assets/index.html`). Note that this registers a custom protocol with the provided
-	/// String, similar to [`with_custom_protocol`], but also sets the WebViewAssetLoader with the
-	/// necessary domain (which is fixed as `<protocol>.assets`). This cannot be used in conjunction
-	/// to `with_custom_protocol` for Android, as it changes the way in which requests are handled.
-	#[cfg(feature = "protocol")]
-	fn with_asset_loader(self, protocol: String) -> Self;
+  /// Use [WebViewAssetLoader](https://developer.android.com/reference/kotlin/androidx/webkit/WebViewAssetLoader)
+  /// to load assets from Android's `asset` folder when using `with_url` as `<protocol>://assets/` (e.g.:
+  /// `wry://assets/index.html`). Note that this registers a custom protocol with the provided
+  /// String, similar to [`with_custom_protocol`], but also sets the WebViewAssetLoader with the
+  /// necessary domain (which is fixed as `<protocol>.assets`). This cannot be used in conjunction
+  /// to `with_custom_protocol` for Android, as it changes the way in which requests are handled.
+  #[cfg(feature = "protocol")]
+  fn with_asset_loader(self, protocol: String) -> Self;
 
-	/// Determines whether the custom protocols should use `https://<scheme>.localhost` instead of the default `http://<scheme>.localhost`.
-	///
-	/// Using a `http` scheme will allow mixed content when trying to fetch `http` endpoints
-	/// and is therefore less secure but will match the behavior of the `<scheme>://localhost` protocols used on macOS and Linux.
-	///
-	/// The default value is `false`.
-	fn with_https_scheme(self, enabled: bool) -> Self;
+  /// Determines whether the custom protocols should use `https://<scheme>.localhost` instead of the default `http://<scheme>.localhost`.
+  ///
+  /// Using a `http` scheme will allow mixed content when trying to fetch `http` endpoints
+  /// and is therefore less secure but will match the behavior of the `<scheme>://localhost` protocols used on macOS and Linux.
+  ///
+  /// The default value is `false`.
+  fn with_https_scheme(self, enabled: bool) -> Self;
 }
 
 #[cfg(target_os = "android")]
 impl WebViewBuilderExtAndroid for WebViewBuilder<'_> {
-	fn on_webview_created<
-		F: Fn(prelude::Context<'_, '_>) -> std::result::Result<(), jni::errors::Error>
-			+ Send
-			+ 'static,
-	>(
-		mut self,
-		f: F,
-	) -> Self {
-		self.platform_specific.on_webview_created = Some(Box::new(f));
-		self
-	}
+  fn on_webview_created<
+    F: Fn(prelude::Context<'_, '_>) -> std::result::Result<(), jni::errors::Error> + Send + 'static,
+  >(
+    mut self,
+    f: F,
+  ) -> Self {
+    self.platform_specific.on_webview_created = Some(Box::new(f));
+    self
+  }
 
-	#[cfg(feature = "protocol")]
-	fn with_asset_loader(mut self, protocol: String) -> Self {
-		// register custom protocol with empty Response return,
-		// this is necessary due to the need of fixing a domain
-		// in WebViewAssetLoader.
-		self.attrs.custom_protocols.insert(
-			protocol.clone(),
-			Box::new(|_, api| {
-				api.respond(Response::builder().body(Vec::new()).unwrap());
-			}),
-		);
-		self.platform_specific.with_asset_loader = true;
-		self.platform_specific.asset_loader_domain = Some(format!("{}.assets", protocol));
-		self
-	}
+  #[cfg(feature = "protocol")]
+  fn with_asset_loader(mut self, protocol: String) -> Self {
+    // register custom protocol with empty Response return,
+    // this is necessary due to the need of fixing a domain
+    // in WebViewAssetLoader.
+    self.attrs.custom_protocols.insert(
+      protocol.clone(),
+      Box::new(|_, api| {
+        api.respond(Response::builder().body(Vec::new()).unwrap());
+      }),
+    );
+    self.platform_specific.with_asset_loader = true;
+    self.platform_specific.asset_loader_domain = Some(format!("{}.assets", protocol));
+    self
+  }
 
-	fn with_https_scheme(mut self, enabled: bool) -> Self {
-		self.platform_specific.https_scheme = enabled;
-		self
-	}
+  fn with_https_scheme(mut self, enabled: bool) -> Self {
+    self.platform_specific.https_scheme = enabled;
+    self
+  }
 }
 
 #[cfg(any(
-	target_os = "linux",
-	target_os = "dragonfly",
-	target_os = "freebsd",
-	target_os = "netbsd",
-	target_os = "openbsd",
+  target_os = "linux",
+  target_os = "dragonfly",
+  target_os = "freebsd",
+  target_os = "netbsd",
+  target_os = "openbsd",
 ))]
 pub trait WebViewBuilderExtUnix<'a> {
-	/// Create the webview inside a GTK container widget, such as GTK window.
-	///
-	/// - If the container is [`gtk::Box`], it is added using [`Box::pack_start(webview, true, true, 0)`](gtk::prelude::BoxExt::pack_start).
-	/// - If the container is [`gtk::Fixed`], its [size request](gtk::prelude::WidgetExt::set_size_request) will be set using the (width, height) bounds passed in
-	///   and will be added to the container using [`Fixed::put`](gtk::prelude::FixedExt::put) using the (x, y) bounds passed in.
-	/// - For all other containers, it will be added using [`gtk::prelude::ContainerExt::add`]
-	///
-	/// # Panics:
-	///
-	/// - Panics if [`gtk::init`] was not called in this thread.
-	fn new_gtk<W>(widget: &'a W) -> Self
-	where
-		W: gtk::prelude::IsA<gtk::Container>;
+  /// Create the webview inside a GTK container widget, such as GTK window.
+  ///
+  /// - If the container is [`gtk::Box`], it is added using [`Box::pack_start(webview, true, true, 0)`](gtk::prelude::BoxExt::pack_start).
+  /// - If the container is [`gtk::Fixed`], its [size request](gtk::prelude::WidgetExt::set_size_request) will be set using the (width, height) bounds passed in
+  ///   and will be added to the container using [`Fixed::put`](gtk::prelude::FixedExt::put) using the (x, y) bounds passed in.
+  /// - For all other containers, it will be added using [`gtk::prelude::ContainerExt::add`]
+  ///
+  /// # Panics:
+  ///
+  /// - Panics if [`gtk::init`] was not called in this thread.
+  fn new_gtk<W>(widget: &'a W) -> Self
+  where
+    W: gtk::prelude::IsA<gtk::Container>;
 }
 
 #[cfg(any(
-	target_os = "linux",
-	target_os = "dragonfly",
-	target_os = "freebsd",
-	target_os = "netbsd",
-	target_os = "openbsd",
+  target_os = "linux",
+  target_os = "dragonfly",
+  target_os = "freebsd",
+  target_os = "netbsd",
+  target_os = "openbsd",
 ))]
 impl<'a> WebViewBuilderExtUnix<'a> for WebViewBuilder<'a> {
-	fn new_gtk<W>(widget: &'a W) -> Self
-	where
-		W: gtk::prelude::IsA<gtk::Container>,
-	{
-		use gdkx11::glib::Cast;
+  fn new_gtk<W>(widget: &'a W) -> Self
+  where
+    W: gtk::prelude::IsA<gtk::Container>,
+  {
+    use gdkx11::glib::Cast;
 
-		Self {
-			attrs: WebViewAttributes::default(),
-			window: None,
-			as_child: false,
-			#[allow(clippy::default_constructed_unit_structs)]
-			platform_specific: PlatformSpecificWebViewAttributes::default(),
-			web_context: None,
-			gtk_widget: Some(widget.dynamic_cast_ref().unwrap()),
-		}
-	}
+    Self {
+      attrs: WebViewAttributes::default(),
+      window: None,
+      as_child: false,
+      #[allow(clippy::default_constructed_unit_structs)]
+      platform_specific: PlatformSpecificWebViewAttributes::default(),
+      web_context: None,
+      gtk_widget: Some(widget.dynamic_cast_ref().unwrap()),
+    }
+  }
 }
 
 /// The fundamental type to present a [`WebView`].
@@ -1339,211 +1328,218 @@ impl<'a> WebViewBuilderExtUnix<'a> for WebViewBuilder<'a> {
 /// scripts for those who prefer to control fine grained window creation and event handling.
 /// [`WebView`] presents the actual WebView window and let you still able to perform actions on it.
 pub struct WebView {
-	webview: InnerWebView,
+  webview: InnerWebView,
 }
 
 impl WebView {
-	/// Create a [`WebView`] from from a type that implements [`HasWindowHandle`].
-	/// Note that calling this directly loses
-	/// abilities to initialize scripts, add ipc handler, and many more before starting WebView. To
-	/// benefit from above features, create a [`WebViewBuilder`] instead.
-	///
-	/// # Platform-specific:
-	///
-	/// - **Linux**: Only X11 is supported, if you want to support Wayland too, use [`WebViewExtUnix::new_gtk`].
-	///
-	///   Although this methods only needs an X11 window handle, you use webkit2gtk, so you still need to initialize gtk
-	///   by callling [`gtk::init`] and advance its loop alongside your event loop using [`gtk::main_iteration_do`].
-	///   Checkout the [Platform Considerations](https://docs.rs/wry/latest/wry/#platform-considerations) section in the crate root documentation.
-	/// - **macOS / Windows**: The webview will auto-resize when the passed handle is resized.
-	/// - **Linux (X11)**: Unlike macOS and Windows, the webview will not auto-resize and you'll need to call [`WebView::set_bounds`] manually.
-	///
-	/// # Panics:
-	///
-	/// - Panics if the provided handle was not supported or invalid.
-	/// - Panics on Linux, if [`gtk::init`] was not called in this thread.
-	pub fn new(window: &impl HasWindowHandle) -> Result<Self> {
-		WebViewBuilder::new(window).build()
-	}
+  /// Create a [`WebView`] from from a type that implements [`HasWindowHandle`].
+  /// Note that calling this directly loses
+  /// abilities to initialize scripts, add ipc handler, and many more before starting WebView. To
+  /// benefit from above features, create a [`WebViewBuilder`] instead.
+  ///
+  /// # Platform-specific:
+  ///
+  /// - **Linux**: Only X11 is supported, if you want to support Wayland too, use [`WebViewExtUnix::new_gtk`].
+  ///
+  ///   Although this methods only needs an X11 window handle, you use webkit2gtk, so you still need to initialize gtk
+  ///   by callling [`gtk::init`] and advance its loop alongside your event loop using [`gtk::main_iteration_do`].
+  ///   Checkout the [Platform Considerations](https://docs.rs/wry/latest/wry/#platform-considerations) section in the crate root documentation.
+  /// - **macOS / Windows**: The webview will auto-resize when the passed handle is resized.
+  /// - **Linux (X11)**: Unlike macOS and Windows, the webview will not auto-resize and you'll need to call [`WebView::set_bounds`] manually.
+  ///
+  /// # Panics:
+  ///
+  /// - Panics if the provided handle was not supported or invalid.
+  /// - Panics on Linux, if [`gtk::init`] was not called in this thread.
+  pub fn new(window: &impl HasWindowHandle) -> Result<Self> {
+    WebViewBuilder::new(window).build()
+  }
 
-	/// Create [`WebViewBuilder`] as a child window inside the provided [`HasWindowHandle`].
-	///
-	/// ## Platform-specific
-	///
-	/// - **Windows**: This will create the webview as a child window of the `parent` window.
-	/// - **macOS**: This will create the webview as a `NSView` subview of the `parent` window's
-	/// content view.
-	/// - **Linux**: This will create the webview as a child window of the `parent` window. Only X11
-	/// is supported. This method won't work on Wayland.
-	///
-	///   Although this methods only needs an X11 window handle, you use webkit2gtk, so you still need to initialize gtk
-	///   by callling [`gtk::init`] and advance its loop alongside your event loop using [`gtk::main_iteration_do`].
-	///   Checkout the [Platform Considerations](https://docs.rs/wry/latest/wry/#platform-considerations) section in the crate root documentation.
-	///
-	///   If you want to support child webviews on X11 and Wayland at the same time,
-	///   we recommend using [`WebViewBuilderExtUnix::new_gtk`] with [`gtk::Fixed`].
-	/// - **Android/iOS:** Unsupported.
-	///
-	/// # Panics:
-	///
-	/// - Panics if the provided handle was not support or invalid.
-	/// - Panics on Linux, if [`gtk::init`] was not called in this thread.
-	pub fn new_as_child(parent: &impl HasWindowHandle) -> Result<Self> {
-		WebViewBuilder::new_as_child(parent).build()
-	}
+  /// Create [`WebViewBuilder`] as a child window inside the provided [`HasWindowHandle`].
+  ///
+  /// ## Platform-specific
+  ///
+  /// - **Windows**: This will create the webview as a child window of the `parent` window.
+  /// - **macOS**: This will create the webview as a `NSView` subview of the `parent` window's
+  /// content view.
+  /// - **Linux**: This will create the webview as a child window of the `parent` window. Only X11
+  /// is supported. This method won't work on Wayland.
+  ///
+  ///   Although this methods only needs an X11 window handle, you use webkit2gtk, so you still need to initialize gtk
+  ///   by callling [`gtk::init`] and advance its loop alongside your event loop using [`gtk::main_iteration_do`].
+  ///   Checkout the [Platform Considerations](https://docs.rs/wry/latest/wry/#platform-considerations) section in the crate root documentation.
+  ///
+  ///   If you want to support child webviews on X11 and Wayland at the same time,
+  ///   we recommend using [`WebViewBuilderExtUnix::new_gtk`] with [`gtk::Fixed`].
+  /// - **Android/iOS:** Unsupported.
+  ///
+  /// # Panics:
+  ///
+  /// - Panics if the provided handle was not support or invalid.
+  /// - Panics on Linux, if [`gtk::init`] was not called in this thread.
+  pub fn new_as_child(parent: &impl HasWindowHandle) -> Result<Self> {
+    WebViewBuilder::new_as_child(parent).build()
+  }
 
-	/// Get the current url of the webview
-	pub fn url(&self) -> Result<String> {
-		self.webview.url()
-	}
+  /// Get the current url of the webview
+  pub fn url(&self) -> Result<String> {
+    self.webview.url()
+  }
 
-	/// Evaluate and run javascript code.
-	pub fn evaluate_script(&self, js: &str) -> Result<()> {
-		self.webview.eval(js, None::<Box<dyn Fn(String) + Send + 'static>>)
-	}
+  /// Evaluate and run javascript code.
+  pub fn evaluate_script(&self, js: &str) -> Result<()> {
+    self
+      .webview
+      .eval(js, None::<Box<dyn Fn(String) + Send + 'static>>)
+  }
 
-	/// Evaluate and run javascript code with callback function. The evaluation result will be
-	/// serialized into a JSON string and passed to the callback function.
-	///
-	/// Exception is ignored because of the limitation on windows. You can catch it yourself and return as string as a workaround.
-	///
-	/// - ** Android:** Not implemented yet.
-	pub fn evaluate_script_with_callback(
-		&self,
-		js: &str,
-		callback: impl Fn(String) + Send + 'static,
-	) -> Result<()> {
-		self.webview.eval(js, Some(callback))
-	}
+  /// Evaluate and run javascript code with callback function. The evaluation result will be
+  /// serialized into a JSON string and passed to the callback function.
+  ///
+  /// Exception is ignored because of the limitation on windows. You can catch it yourself and return as string as a workaround.
+  ///
+  /// - ** Android:** Not implemented yet.
+  pub fn evaluate_script_with_callback(
+    &self,
+    js: &str,
+    callback: impl Fn(String) + Send + 'static,
+  ) -> Result<()> {
+    self.webview.eval(js, Some(callback))
+  }
 
-	/// Launch print modal for the webview content.
-	pub fn print(&self) -> Result<()> {
-		self.webview.print()
-	}
+  /// Launch print modal for the webview content.
+  pub fn print(&self) -> Result<()> {
+    self.webview.print()
+  }
 
-	/// Open the web inspector which is usually called dev tool.
-	///
-	/// ## Platform-specific
-	///
-	/// - **Android / iOS:** Not supported.
-	#[cfg(any(debug_assertions, feature = "devtools"))]
-	pub fn open_devtools(&self) {
-		self.webview.open_devtools()
-	}
+  /// Open the web inspector which is usually called dev tool.
+  ///
+  /// ## Platform-specific
+  ///
+  /// - **Android / iOS:** Not supported.
+  #[cfg(any(debug_assertions, feature = "devtools"))]
+  pub fn open_devtools(&self) {
+    self.webview.open_devtools()
+  }
 
-	/// Close the web inspector which is usually called dev tool.
-	///
-	/// ## Platform-specific
-	///
-	/// - **Windows / Android / iOS:** Not supported.
-	#[cfg(any(debug_assertions, feature = "devtools"))]
-	pub fn close_devtools(&self) {
-		self.webview.close_devtools()
-	}
+  /// Close the web inspector which is usually called dev tool.
+  ///
+  /// ## Platform-specific
+  ///
+  /// - **Windows / Android / iOS:** Not supported.
+  #[cfg(any(debug_assertions, feature = "devtools"))]
+  pub fn close_devtools(&self) {
+    self.webview.close_devtools()
+  }
 
-	/// Gets the devtool window's current visibility state.
-	///
-	/// ## Platform-specific
-	///
-	/// - **Windows / Android / iOS:** Not supported.
-	#[cfg(any(debug_assertions, feature = "devtools"))]
-	pub fn is_devtools_open(&self) -> bool {
-		self.webview.is_devtools_open()
-	}
+  /// Gets the devtool window's current visibility state.
+  ///
+  /// ## Platform-specific
+  ///
+  /// - **Windows / Android / iOS:** Not supported.
+  #[cfg(any(debug_assertions, feature = "devtools"))]
+  pub fn is_devtools_open(&self) -> bool {
+    self.webview.is_devtools_open()
+  }
 
-	/// Set the webview zoom level
-	///
-	/// ## Platform-specific:
-	///
-	/// - **Android**: Not supported.
-	/// - **macOS**: available on macOS 11+ only.
-	/// - **iOS**: available on iOS 14+ only.
-	pub fn zoom(&self, scale_factor: f64) -> Result<()> {
-		self.webview.zoom(scale_factor)
-	}
+  /// Set the webview zoom level
+  ///
+  /// ## Platform-specific:
+  ///
+  /// - **Android**: Not supported.
+  /// - **macOS**: available on macOS 11+ only.
+  /// - **iOS**: available on iOS 14+ only.
+  pub fn zoom(&self, scale_factor: f64) -> Result<()> {
+    self.webview.zoom(scale_factor)
+  }
 
-	/// Specify the webview background color.
-	///
-	/// The color uses the RGBA format.
-	///
-	/// ## Platfrom-specific:
-	///
-	/// - **macOS / iOS**: Not implemented.
-	/// - **Windows**:
-	///   - On Windows 7, transparency is not supported and the alpha value will be ignored.
-	///   - On Windows higher than 7: translucent colors are not supported so any alpha value other than `0` will be replaced by `255`
-	pub fn set_background_color(&self, background_color: RGBA) -> Result<()> {
-		self.webview.set_background_color(background_color)
-	}
+  /// Specify the webview background color.
+  ///
+  /// The color uses the RGBA format.
+  ///
+  /// ## Platfrom-specific:
+  ///
+  /// - **macOS / iOS**: Not implemented.
+  /// - **Windows**:
+  ///   - On Windows 7, transparency is not supported and the alpha value will be ignored.
+  ///   - On Windows higher than 7: translucent colors are not supported so any alpha value other than `0` will be replaced by `255`
+  pub fn set_background_color(&self, background_color: RGBA) -> Result<()> {
+    self.webview.set_background_color(background_color)
+  }
 
-	/// Navigate to the specified url
-	pub fn load_url(&self, url: &str) -> Result<()> {
-		self.webview.load_url(url)
-	}
+  /// Navigate to the specified url
+  pub fn load_url(&self, url: &str) -> Result<()> {
+    self.webview.load_url(url)
+  }
 
-	/// Navigate to the specified url using the specified headers
-	pub fn load_url_with_headers(&self, url: &str, headers: http::HeaderMap) -> Result<()> {
-		self.webview.load_url_with_headers(url, headers)
-	}
+  /// Navigate to the specified url using the specified headers
+  pub fn load_url_with_headers(&self, url: &str, headers: http::HeaderMap) -> Result<()> {
+    self.webview.load_url_with_headers(url, headers)
+  }
 
-	/// Clear all browsing data
-	pub fn clear_all_browsing_data(&self) -> Result<()> {
-		self.webview.clear_all_browsing_data()
-	}
+  /// Load html content into the webview
+  pub fn load_html(&self, html: &str) -> Result<()> {
+    self.webview.load_html(html)
+  }
 
-	pub fn bounds(&self) -> Result<Rect> {
-		self.webview.bounds()
-	}
+  /// Clear all browsing data
+  pub fn clear_all_browsing_data(&self) -> Result<()> {
+    self.webview.clear_all_browsing_data()
+  }
 
-	/// Set the webview bounds.
-	///
-	/// This is only effective if the webview was created as a child
-	/// or created using [`WebViewBuilderExtUnix::new_gtk`] with [`gtk::Fixed`].
-	pub fn set_bounds(&self, bounds: Rect) -> Result<()> {
-		self.webview.set_bounds(bounds)
-	}
+  pub fn bounds(&self) -> Result<Rect> {
+    self.webview.bounds()
+  }
 
-	/// Shows or hides the webview.
-	pub fn set_visible(&self, visible: bool) -> Result<()> {
-		self.webview.set_visible(visible)
-	}
+  /// Set the webview bounds.
+  ///
+  /// This is only effective if the webview was created as a child
+  /// or created using [`WebViewBuilderExtUnix::new_gtk`] with [`gtk::Fixed`].
+  pub fn set_bounds(&self, bounds: Rect) -> Result<()> {
+    self.webview.set_bounds(bounds)
+  }
 
-	/// Try moving focus to the webview.
-	pub fn focus(&self) -> Result<()> {
-		self.webview.focus()
-	}
+  /// Shows or hides the webview.
+  pub fn set_visible(&self, visible: bool) -> Result<()> {
+    self.webview.set_visible(visible)
+  }
+
+  /// Try moving focus to the webview.
+  pub fn focus(&self) -> Result<()> {
+    self.webview.focus()
+  }
 }
 
 /// An event describing drag and drop operations on the webview.
 #[non_exhaustive]
 #[derive(Debug, Clone)]
 pub enum DragDropEvent {
-	/// A drag operation has entered the webview.
-	Enter {
-		/// List of paths that are being dragged onto the webview.
-		paths: Vec<PathBuf>,
-		/// Position of the drag operation, relative to the webview top-left corner.
-		position: (i32, i32),
-	},
-	/// A drag operation is moving over the window.
-	Over {
-		/// Position of the drag operation, relative to the webview top-left corner.
-		position: (i32, i32),
-	},
-	/// The file(s) have been dropped onto the window.
-	Drop {
-		/// List of paths that are being dropped onto the window.
-		paths: Vec<PathBuf>,
-		/// Position of the drag operation, relative to the webview top-left corner.
-		position: (i32, i32),
-	},
-	/// The drag operation has been cancelled or left the window.
-	Leave,
+  /// A drag operation has entered the webview.
+  Enter {
+    /// List of paths that are being dragged onto the webview.
+    paths: Vec<PathBuf>,
+    /// Position of the drag operation, relative to the webview top-left corner.
+    position: (i32, i32),
+  },
+  /// A drag operation is moving over the window.
+  Over {
+    /// Position of the drag operation, relative to the webview top-left corner.
+    position: (i32, i32),
+  },
+  /// The file(s) have been dropped onto the window.
+  Drop {
+    /// List of paths that are being dropped onto the window.
+    paths: Vec<PathBuf>,
+    /// Position of the drag operation, relative to the webview top-left corner.
+    position: (i32, i32),
+  },
+  /// The drag operation has been cancelled or left the window.
+  Leave,
 }
 
 /// Get WebView/Webkit version on current platform.
 pub fn webview_version() -> Result<String> {
-	platform_webview_version()
+  platform_webview_version()
 }
 
 /// The [memory usage target level][1]. There are two levels 'Low' and 'Normal' and the default
@@ -1555,193 +1551,193 @@ pub fn webview_version() -> Result<String> {
 #[non_exhaustive]
 #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum MemoryUsageLevel {
-	/// The 'Normal' memory usage. Applications should set this level when they are becoming active.
-	#[default]
-	Normal,
-	/// The 'Low' memory usage. Applications can reduce memory comsumption by setting this level when
-	/// they are becoming inactive.
-	Low,
+  /// The 'Normal' memory usage. Applications should set this level when they are becoming active.
+  #[default]
+  Normal,
+  /// The 'Low' memory usage. Applications can reduce memory comsumption by setting this level when
+  /// they are becoming inactive.
+  Low,
 }
 
 /// Additional methods on `WebView` that are specific to Windows.
 #[cfg(target_os = "windows")]
 pub trait WebViewExtWindows {
-	/// Returns WebView2 Controller
-	fn controller(&self) -> ICoreWebView2Controller;
+  /// Returns WebView2 Controller
+  fn controller(&self) -> ICoreWebView2Controller;
 
-	/// Changes the webview2 theme.
-	///
-	/// Requires WebView2 Runtime version 101.0.1210.39 or higher, returns error on older versions,
-	/// see https://learn.microsoft.com/en-us/microsoft-edge/webview2/release-notes/archive?tabs=dotnetcsharp#10121039
-	fn set_theme(&self, theme: Theme) -> Result<()>;
+  /// Changes the webview2 theme.
+  ///
+  /// Requires WebView2 Runtime version 101.0.1210.39 or higher, returns error on older versions,
+  /// see https://learn.microsoft.com/en-us/microsoft-edge/webview2/release-notes/archive?tabs=dotnetcsharp#10121039
+  fn set_theme(&self, theme: Theme) -> Result<()>;
 
-	/// Sets the [memory usage target level][1].
-	///
-	/// When to best use this mode depends on the app in question. Most commonly it's called when
-	/// the app's visiblity state changes.
-	///
-	/// Please read the [guide for WebView2][2] for more details.
-	///
-	/// This method uses a WebView2 API added in Runtime version 114.0.1823.32. When it is used in
-	/// an older Runtime version, it does nothing.
-	///
-	/// [1]: https://learn.microsoft.com/en-us/dotnet/api/microsoft.web.webview2.core.corewebview2memoryusagetargetlevel
-	/// [2]: https://learn.microsoft.com/en-us/dotnet/api/microsoft.web.webview2.core.corewebview2.memoryusagetargetlevel?view=webview2-dotnet-1.0.2088.41#remarks
-	fn set_memory_usage_level(&self, level: MemoryUsageLevel) -> Result<()>;
+  /// Sets the [memory usage target level][1].
+  ///
+  /// When to best use this mode depends on the app in question. Most commonly it's called when
+  /// the app's visiblity state changes.
+  ///
+  /// Please read the [guide for WebView2][2] for more details.
+  ///
+  /// This method uses a WebView2 API added in Runtime version 114.0.1823.32. When it is used in
+  /// an older Runtime version, it does nothing.
+  ///
+  /// [1]: https://learn.microsoft.com/en-us/dotnet/api/microsoft.web.webview2.core.corewebview2memoryusagetargetlevel
+  /// [2]: https://learn.microsoft.com/en-us/dotnet/api/microsoft.web.webview2.core.corewebview2.memoryusagetargetlevel?view=webview2-dotnet-1.0.2088.41#remarks
+  fn set_memory_usage_level(&self, level: MemoryUsageLevel) -> Result<()>;
 
-	/// Attaches this webview to the given HWND and removes it from the current one.
-	fn reparent(&self, hwnd: isize) -> Result<()>;
+  /// Attaches this webview to the given HWND and removes it from the current one.
+  fn reparent(&self, hwnd: isize) -> Result<()>;
 }
 
 #[cfg(target_os = "windows")]
 impl WebViewExtWindows for WebView {
-	fn controller(&self) -> ICoreWebView2Controller {
-		self.webview.controller.clone()
-	}
+  fn controller(&self) -> ICoreWebView2Controller {
+    self.webview.controller.clone()
+  }
 
-	fn set_theme(&self, theme: Theme) -> Result<()> {
-		self.webview.set_theme(theme)
-	}
+  fn set_theme(&self, theme: Theme) -> Result<()> {
+    self.webview.set_theme(theme)
+  }
 
-	fn set_memory_usage_level(&self, level: MemoryUsageLevel) -> Result<()> {
-		self.webview.set_memory_usage_level(level)
-	}
+  fn set_memory_usage_level(&self, level: MemoryUsageLevel) -> Result<()> {
+    self.webview.set_memory_usage_level(level)
+  }
 
-	fn reparent(&self, hwnd: isize) -> Result<()> {
-		self.webview.reparent(hwnd)
-	}
+  fn reparent(&self, hwnd: isize) -> Result<()> {
+    self.webview.reparent(hwnd)
+  }
 }
 
 /// Additional methods on `WebView` that are specific to Linux.
 #[cfg(gtk)]
 pub trait WebViewExtUnix: Sized {
-	/// Create the webview inside a GTK container widget, such as GTK window.
-	///
-	/// - If the container is [`gtk::Box`], it is added using [`Box::pack_start(webview, true, true, 0)`](gtk::prelude::BoxExt::pack_start).
-	/// - If the container is [`gtk::Fixed`], its [size request](gtk::prelude::WidgetExt::set_size_request) will be set using the (width, height) bounds passed in
-	///   and will be added to the container using [`Fixed::put`](gtk::prelude::FixedExt::put) using the (x, y) bounds passed in.
-	/// - For all other containers, it will be added using [`gtk::prelude::ContainerExt::add`]
-	///
-	/// # Panics:
-	///
-	/// - Panics if [`gtk::init`] was not called in this thread.
-	fn new_gtk<W>(widget: &W) -> Result<Self>
-	where
-		W: gtk::prelude::IsA<gtk::Container>;
+  /// Create the webview inside a GTK container widget, such as GTK window.
+  ///
+  /// - If the container is [`gtk::Box`], it is added using [`Box::pack_start(webview, true, true, 0)`](gtk::prelude::BoxExt::pack_start).
+  /// - If the container is [`gtk::Fixed`], its [size request](gtk::prelude::WidgetExt::set_size_request) will be set using the (width, height) bounds passed in
+  ///   and will be added to the container using [`Fixed::put`](gtk::prelude::FixedExt::put) using the (x, y) bounds passed in.
+  /// - For all other containers, it will be added using [`gtk::prelude::ContainerExt::add`]
+  ///
+  /// # Panics:
+  ///
+  /// - Panics if [`gtk::init`] was not called in this thread.
+  fn new_gtk<W>(widget: &W) -> Result<Self>
+  where
+    W: gtk::prelude::IsA<gtk::Container>;
 
-	/// Returns Webkit2gtk Webview handle
-	fn webview(&self) -> webkit2gtk::WebView;
+  /// Returns Webkit2gtk Webview handle
+  fn webview(&self) -> webkit2gtk::WebView;
 
-	/// Attaches this webview to the given Widget and removes it from the current one.
-	fn reparent<W>(&self, widget: &W) -> Result<()>
-	where
-		W: gtk::prelude::IsA<gtk::Container>;
+  /// Attaches this webview to the given Widget and removes it from the current one.
+  fn reparent<W>(&self, widget: &W) -> Result<()>
+  where
+    W: gtk::prelude::IsA<gtk::Container>;
 }
 
 #[cfg(gtk)]
 impl WebViewExtUnix for WebView {
-	fn new_gtk<W>(widget: &W) -> Result<Self>
-	where
-		W: gtk::prelude::IsA<gtk::Container>,
-	{
-		WebViewBuilder::new_gtk(widget).build()
-	}
+  fn new_gtk<W>(widget: &W) -> Result<Self>
+  where
+    W: gtk::prelude::IsA<gtk::Container>,
+  {
+    WebViewBuilder::new_gtk(widget).build()
+  }
 
-	fn webview(&self) -> webkit2gtk::WebView {
-		self.webview.webview.clone()
-	}
+  fn webview(&self) -> webkit2gtk::WebView {
+    self.webview.webview.clone()
+  }
 
-	fn reparent<W>(&self, widget: &W) -> Result<()>
-	where
-		W: gtk::prelude::IsA<gtk::Container>,
-	{
-		self.webview.reparent(widget)
-	}
+  fn reparent<W>(&self, widget: &W) -> Result<()>
+  where
+    W: gtk::prelude::IsA<gtk::Container>,
+  {
+    self.webview.reparent(widget)
+  }
 }
 
 /// Additional methods on `WebView` that are specific to macOS.
 #[cfg(target_os = "macos")]
 pub trait WebViewExtMacOS {
-	/// Returns WKWebView handle
-	fn webview(&self) -> cocoa::base::id;
-	/// Returns WKWebView manager [(userContentController)](https://developer.apple.com/documentation/webkit/wkscriptmessagehandler/1396222-usercontentcontroller) handle
-	fn manager(&self) -> cocoa::base::id;
-	/// Returns NSWindow associated with the WKWebView webview
-	fn ns_window(&self) -> cocoa::base::id;
-	/// Attaches this webview to the given NSWindow and removes it from the current one.
-	fn reparent(&self, window: cocoa::base::id) -> Result<()>;
-	// Prints with extra options
-	fn print_with_options(&self, options: &PrintOptions) -> Result<()>;
+  /// Returns WKWebView handle
+  fn webview(&self) -> cocoa::base::id;
+  /// Returns WKWebView manager [(userContentController)](https://developer.apple.com/documentation/webkit/wkscriptmessagehandler/1396222-usercontentcontroller) handle
+  fn manager(&self) -> cocoa::base::id;
+  /// Returns NSWindow associated with the WKWebView webview
+  fn ns_window(&self) -> cocoa::base::id;
+  /// Attaches this webview to the given NSWindow and removes it from the current one.
+  fn reparent(&self, window: cocoa::base::id) -> Result<()>;
+  // Prints with extra options
+  fn print_with_options(&self, options: &PrintOptions) -> Result<()>;
 }
 
 #[cfg(target_os = "macos")]
 impl WebViewExtMacOS for WebView {
-	fn webview(&self) -> cocoa::base::id {
-		self.webview.webview
-	}
+  fn webview(&self) -> cocoa::base::id {
+    self.webview.webview
+  }
 
-	fn manager(&self) -> cocoa::base::id {
-		self.webview.manager
-	}
+  fn manager(&self) -> cocoa::base::id {
+    self.webview.manager
+  }
 
-	fn ns_window(&self) -> cocoa::base::id {
-		unsafe {
-			let ns_window: cocoa::base::id = msg_send![self.webview.webview, window];
-			ns_window
-		}
-	}
+  fn ns_window(&self) -> cocoa::base::id {
+    unsafe {
+      let ns_window: cocoa::base::id = msg_send![self.webview.webview, window];
+      ns_window
+    }
+  }
 
-	fn reparent(&self, window: cocoa::base::id) -> Result<()> {
-		self.webview.reparent(window)
-	}
+  fn reparent(&self, window: cocoa::base::id) -> Result<()> {
+    self.webview.reparent(window)
+  }
 
-	fn print_with_options(&self, options: &PrintOptions) -> Result<()> {
-		self.webview.print_with_options(options)
-	}
+  fn print_with_options(&self, options: &PrintOptions) -> Result<()> {
+    self.webview.print_with_options(options)
+  }
 }
 
 /// Additional methods on `WebView` that are specific to iOS.
 #[cfg(target_os = "ios")]
 pub trait WebViewExtIOS {
-	/// Returns WKWebView handle
-	fn webview(&self) -> cocoa::base::id;
-	/// Returns WKWebView manager [(userContentController)](https://developer.apple.com/documentation/webkit/wkscriptmessagehandler/1396222-usercontentcontroller) handle
-	fn manager(&self) -> cocoa::base::id;
+  /// Returns WKWebView handle
+  fn webview(&self) -> cocoa::base::id;
+  /// Returns WKWebView manager [(userContentController)](https://developer.apple.com/documentation/webkit/wkscriptmessagehandler/1396222-usercontentcontroller) handle
+  fn manager(&self) -> cocoa::base::id;
 }
 
 #[cfg(target_os = "ios")]
 impl WebViewExtIOS for WebView {
-	fn webview(&self) -> cocoa::base::id {
-		self.webview.webview
-	}
+  fn webview(&self) -> cocoa::base::id {
+    self.webview.webview
+  }
 
-	fn manager(&self) -> cocoa::base::id {
-		self.webview.manager
-	}
+  fn manager(&self) -> cocoa::base::id {
+    self.webview.manager
+  }
 }
 
 #[cfg(target_os = "android")]
 /// Additional methods on `WebView` that are specific to Android
 pub trait WebViewExtAndroid {
-	fn handle(&self) -> JniHandle;
+  fn handle(&self) -> JniHandle;
 }
 
 #[cfg(target_os = "android")]
 impl WebViewExtAndroid for WebView {
-	fn handle(&self) -> JniHandle {
-		JniHandle
-	}
+  fn handle(&self) -> JniHandle {
+    JniHandle
+  }
 }
 
 /// WebView theme.
 #[derive(Debug, Clone, Copy)]
 pub enum Theme {
-	/// Dark
-	Dark,
-	/// Light
-	Light,
-	/// System preference
-	Auto,
+  /// Dark
+  Dark,
+  /// Light
+  Light,
+  /// System preference
+  Auto,
 }
 
 /// Type alias for a color in the RGBA format.
@@ -1751,31 +1747,31 @@ pub type RGBA = (u8, u8, u8, u8);
 
 /// Type of of page loading event
 pub enum PageLoadEvent {
-	/// Indicates that the content of the page has started loading
-	Started,
-	/// Indicates that the page content has finished loading
-	Finished,
+  /// Indicates that the content of the page has started loading
+  Started,
+  /// Indicates that the page content has finished loading
+  Finished,
 }
 
 #[cfg(any(
-	target_os = "linux",
-	target_os = "dragonfly",
-	target_os = "freebsd",
-	target_os = "netbsd",
-	target_os = "openbsd",
+  target_os = "linux",
+  target_os = "dragonfly",
+  target_os = "freebsd",
+  target_os = "netbsd",
+  target_os = "openbsd",
 ))]
 #[derive(Default)]
 pub(crate) struct PlatformSpecificWebViewAttributes;
 
 #[cfg(test)]
 mod tests {
-	use super::*;
+  use super::*;
 
-	#[test]
-	#[cfg_attr(miri, ignore)]
-	fn should_get_webview_version() {
-		if let Err(error) = webview_version() {
-			panic!("{}", error);
-		}
-	}
+  #[test]
+  #[cfg_attr(miri, ignore)]
+  fn should_get_webview_version() {
+    if let Err(error) = webview_version() {
+      panic!("{}", error);
+    }
+  }
 }
