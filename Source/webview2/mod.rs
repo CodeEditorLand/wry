@@ -26,11 +26,7 @@ use windows::{
 		Foundation::*,
 		Globalization::*,
 		Graphics::Gdi::*,
-		System::{
-			Com::*,
-			LibraryLoader::GetModuleHandleW,
-			WinRT::EventRegistrationToken,
-		},
+		System::{Com::*, LibraryLoader::GetModuleHandleW, WinRT::EventRegistrationToken},
 		UI::{Shell::*, WindowsAndMessaging::*},
 	},
 };
@@ -53,8 +49,7 @@ use crate::{
 const PARENT_SUBCLASS_ID:u32 = WM_USER + 0x64;
 const PARENT_DESTROY_MESSAGE:u32 = WM_USER + 0x65;
 const MAIN_THREAD_DISPATCHER_SUBCLASS_ID:u32 = WM_USER + 0x66;
-static EXEC_MSG_ID:Lazy<u32> =
-	Lazy::new(|| unsafe { RegisterWindowMessageA(s!("Wry::ExecMsg")) });
+static EXEC_MSG_ID:Lazy<u32> = Lazy::new(|| unsafe { RegisterWindowMessageA(s!("Wry::ExecMsg")) });
 
 impl From<webview2_com::Error> for Error {
 	fn from(err:webview2_com::Error) -> Self { Error::WebView2Error(err) }
@@ -134,22 +129,10 @@ impl InnerWebView {
 		let drop_handler = attributes.drag_drop_handler.take();
 		let bounds = attributes.bounds;
 
-		let env = Self::create_environment(
-			&web_context,
-			pl_attrs.clone(),
-			&attributes,
-		)?;
-		let controller =
-			Self::create_controller(hwnd, &env, attributes.incognito)?;
-		let webview = Self::init_webview(
-			parent,
-			hwnd,
-			attributes,
-			&env,
-			&controller,
-			pl_attrs,
-			is_child,
-		)?;
+		let env = Self::create_environment(&web_context, pl_attrs.clone(), &attributes)?;
+		let controller = Self::create_controller(hwnd, &env, attributes.incognito)?;
+		let webview =
+			Self::init_webview(parent, hwnd, attributes, &env, &controller, pl_attrs, is_child)?;
 
 		let drag_drop_controller =
 			drop_handler.map(|handler| DragDropController::new(hwnd, handler));
@@ -196,11 +179,7 @@ impl InnerWebView {
 			lpfnWndProc:Some(default_window_proc),
 			cbClsExtra:0,
 			cbWndExtra:0,
-			hInstance:unsafe {
-				HINSTANCE(
-					GetModuleHandleW(PCWSTR::null()).unwrap_or_default().0,
-				)
-			},
+			hInstance:unsafe { HINSTANCE(GetModuleHandleW(PCWSTR::null()).unwrap_or_default().0) },
 			hIcon:HICON::default(),
 			hCursor:HCURSOR::default(),
 			hbrBackground:HBRUSH::default(),
@@ -265,10 +244,7 @@ impl InnerWebView {
 				0,
 				0,
 				0,
-				SWP_ASYNCWINDOWPOS
-					| SWP_NOACTIVATE
-					| SWP_NOMOVE | SWP_NOOWNERZORDER
-					| SWP_NOSIZE,
+				SWP_ASYNCWINDOWPOS | SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOOWNERZORDER | SWP_NOSIZE,
 			)
 		}?;
 
@@ -287,75 +263,71 @@ impl InnerWebView {
 			.map(HSTRING::from);
 
 		// additional browser args
-		let additional_browser_args =
-			pl_attrs.additional_browser_args.unwrap_or_else(|| {
-				// remove "mini menu" - See https://github.com/tauri-apps/wry/issues/535
-				// and "smart screen" - See https://github.com/tauri-apps/tauri/issues/1345
-				let default_args = "--disable-features=msWebOOUI,msPdfOOUI,\
-				                    msSmartScreenProtection";
-				let mut arguments = String::from(default_args);
+		let additional_browser_args = pl_attrs.additional_browser_args.unwrap_or_else(|| {
+			// remove "mini menu" - See https://github.com/tauri-apps/wry/issues/535
+			// and "smart screen" - See https://github.com/tauri-apps/tauri/issues/1345
+			let default_args = "--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection";
+			let mut arguments = String::from(default_args);
 
-				if attributes.autoplay {
-					arguments.push_str(
-						" --autoplay-policy=no-user-gesture-required",
-					);
-				}
+			if attributes.autoplay {
+				arguments.push_str(" --autoplay-policy=no-user-gesture-required");
+			}
 
-				if let Some(proxy_setting) = &attributes.proxy_config {
-					match proxy_setting {
-						ProxyConfig::Http(endpoint) => {
-							arguments.push_str(" --proxy-server=http://");
-							arguments.push_str(&endpoint.host);
-							arguments.push(':');
-							arguments.push_str(&endpoint.port);
-						},
-						ProxyConfig::Socks5(endpoint) => {
-							arguments.push_str(" --proxy-server=socks5://");
-							arguments.push_str(&endpoint.host);
-							arguments.push(':');
-							arguments.push_str(&endpoint.port);
-						},
-					};
-				}
+			if let Some(proxy_setting) = &attributes.proxy_config {
+				match proxy_setting {
+					ProxyConfig::Http(endpoint) => {
+						arguments.push_str(" --proxy-server=http://");
+						arguments.push_str(&endpoint.host);
+						arguments.push(':');
+						arguments.push_str(&endpoint.port);
+					},
+					ProxyConfig::Socks5(endpoint) => {
+						arguments.push_str(" --proxy-server=socks5://");
+						arguments.push_str(&endpoint.host);
+						arguments.push(':');
+						arguments.push_str(&endpoint.port);
+					},
+				};
+			}
 
-				arguments
-			});
+			arguments
+		});
 
 		let (tx, rx) = mpsc::channel();
 		CreateCoreWebView2EnvironmentCompletedHandler::wait_for_async_operation(
-      Box::new(move |environmentcreatedhandler| unsafe {
-        let options = CoreWebView2EnvironmentOptions::default();
+			Box::new(move |environmentcreatedhandler| unsafe {
+				let options = CoreWebView2EnvironmentOptions::default();
 
-        options.set_additional_browser_arguments(additional_browser_args);
-        options.set_are_browser_extensions_enabled(pl_attrs.browser_extensions_enabled);
+				options.set_additional_browser_arguments(additional_browser_args);
+				options.set_are_browser_extensions_enabled(pl_attrs.browser_extensions_enabled);
 
-        // Get user's system language
-        let lcid = GetUserDefaultUILanguage();
-        let mut lang = [0; MAX_LOCALE_NAME as usize];
-        LCIDToLocaleName(lcid as u32, Some(&mut lang), LOCALE_ALLOW_NEUTRAL_NAMES);
-        options.set_language(String::from_utf16_lossy(&lang));
+				// Get user's system language
+				let lcid = GetUserDefaultUILanguage();
+				let mut lang = [0; MAX_LOCALE_NAME as usize];
+				LCIDToLocaleName(lcid as u32, Some(&mut lang), LOCALE_ALLOW_NEUTRAL_NAMES);
+				options.set_language(String::from_utf16_lossy(&lang));
 
-        let scroll_bar_style = match pl_attrs.scroll_bar_style {
-          ScrollBarStyle::Default => COREWEBVIEW2_SCROLLBAR_STYLE_DEFAULT,
-          ScrollBarStyle::FluentOverlay => COREWEBVIEW2_SCROLLBAR_STYLE_FLUENT_OVERLAY,
-        };
+				let scroll_bar_style = match pl_attrs.scroll_bar_style {
+					ScrollBarStyle::Default => COREWEBVIEW2_SCROLLBAR_STYLE_DEFAULT,
+					ScrollBarStyle::FluentOverlay => COREWEBVIEW2_SCROLLBAR_STYLE_FLUENT_OVERLAY,
+				};
 
-        options.set_scroll_bar_style(scroll_bar_style);
+				options.set_scroll_bar_style(scroll_bar_style);
 
-        CreateCoreWebView2EnvironmentWithOptions(
-          PCWSTR::null(),
-          &data_directory.unwrap_or_default(),
-          &ICoreWebView2EnvironmentOptions::from(options),
-          &environmentcreatedhandler,
-        )
-        .map_err(Into::into)
-      }),
-      Box::new(move |error_code, environment| {
-        error_code?;
-        tx.send(environment.ok_or_else(|| windows::core::Error::from(E_POINTER)))
-          .map_err(|_| windows::core::Error::from(E_UNEXPECTED))
-      }),
-    )?;
+				CreateCoreWebView2EnvironmentWithOptions(
+					PCWSTR::null(),
+					&data_directory.unwrap_or_default(),
+					&ICoreWebView2EnvironmentOptions::from(options),
+					&environmentcreatedhandler,
+				)
+				.map_err(Into::into)
+			}),
+			Box::new(move |error_code, environment| {
+				error_code?;
+				tx.send(environment.ok_or_else(|| windows::core::Error::from(E_POINTER)))
+					.map_err(|_| windows::core::Error::from(E_UNEXPECTED))
+			}),
+		)?;
 
 		rx.recv()?.map_err(Into::into)
 	}
@@ -372,32 +344,30 @@ impl InnerWebView {
 
 		CreateCoreWebView2ControllerCompletedHandler::wait_for_async_operation(
 			if let Ok(env10) = env10 {
-				let controller_opts =
-					unsafe { env10.CreateCoreWebView2ControllerOptions()? };
+				let controller_opts = unsafe { env10.CreateCoreWebView2ControllerOptions()? };
 				unsafe { controller_opts.SetIsInPrivateModeEnabled(incognito)? }
 				Box::new(
-          move |handler: ICoreWebView2CreateCoreWebView2ControllerCompletedHandler| unsafe {
-            env10
-              .CreateCoreWebView2ControllerWithOptions(hwnd, &controller_opts, &handler)
-              .map_err(Into::into)
-          },
-        )
+					move |handler:ICoreWebView2CreateCoreWebView2ControllerCompletedHandler| unsafe {
+						env10
+							.CreateCoreWebView2ControllerWithOptions(
+								hwnd,
+								&controller_opts,
+								&handler,
+							)
+							.map_err(Into::into)
+					},
+				)
 			} else {
 				Box::new(
-          move |handler: ICoreWebView2CreateCoreWebView2ControllerCompletedHandler| unsafe {
-            env
-              .CreateCoreWebView2Controller(hwnd, &handler)
-              .map_err(Into::into)
-          },
-        )
+					move |handler:ICoreWebView2CreateCoreWebView2ControllerCompletedHandler| unsafe {
+						env.CreateCoreWebView2Controller(hwnd, &handler).map_err(Into::into)
+					},
+				)
 			},
 			Box::new(move |error_code, controller| {
 				error_code?;
-				tx.send(
-					controller
-						.ok_or_else(|| windows::core::Error::from(E_POINTER)),
-				)
-				.map_err(|_| windows::core::Error::from(E_UNEXPECTED))
+				tx.send(controller.ok_or_else(|| windows::core::Error::from(E_POINTER)))
+					.map_err(|_| windows::core::Error::from(E_UNEXPECTED))
 			}),
 		)?;
 
@@ -421,9 +391,8 @@ impl InnerWebView {
 			if let Err(error) = unsafe { set_theme(&webview, theme) } {
 				match error {
 					// Ignore cast error
-					Error::WebView2Error(
-						webview2_com::Error::WindowsError(windows_error),
-					) if windows_error.code() == E_NOINTERFACE => {},
+					Error::WebView2Error(webview2_com::Error::WindowsError(windows_error))
+						if windows_error.code() == E_NOINTERFACE => {},
 					// Return error if other things went wrong
 					_ => return Err(error),
 				};
@@ -450,19 +419,13 @@ impl InnerWebView {
 		let mut token = EventRegistrationToken::default();
 
 		// Webview Settings
-		unsafe {
-			Self::set_webview_settings(&webview, &attributes, &pl_attrs)?
-		};
+		unsafe { Self::set_webview_settings(&webview, &attributes, &pl_attrs)? };
 
 		// Webview handlers
-		unsafe {
-			Self::attach_handlers(hwnd, &webview, &mut attributes, &mut token)?
-		};
+		unsafe { Self::attach_handlers(hwnd, &webview, &mut attributes, &mut token)? };
 
 		// IPC handler
-		unsafe {
-			Self::attach_ipc_handler(&webview, &mut attributes, &mut token)?
-		};
+		unsafe { Self::attach_ipc_handler(&webview, &mut attributes, &mut token)? };
 
 		// Custom protocols handler
 		let scheme = if pl_attrs.use_https { "https" } else { "http" };
@@ -490,24 +453,17 @@ impl InnerWebView {
 		if attributes.clipboard {
 			unsafe {
 				webview.add_PermissionRequested(
-					&PermissionRequestedEventHandler::create(Box::new(
-						|_, args| {
-							let Some(args) = args else { return Ok(()) };
+					&PermissionRequestedEventHandler::create(Box::new(|_, args| {
+						let Some(args) = args else { return Ok(()) };
 
-							let mut kind =
-								COREWEBVIEW2_PERMISSION_KIND::default();
-							args.PermissionKind(&mut kind)?;
-							if kind
-								== COREWEBVIEW2_PERMISSION_KIND_CLIPBOARD_READ
-							{
-								args.SetState(
-									COREWEBVIEW2_PERMISSION_STATE_ALLOW,
-								)?;
-							}
+						let mut kind = COREWEBVIEW2_PERMISSION_KIND::default();
+						args.PermissionKind(&mut kind)?;
+						if kind == COREWEBVIEW2_PERMISSION_KIND_CLIPBOARD_READ {
+							args.SetState(COREWEBVIEW2_PERMISSION_STATE_ALLOW)?;
+						}
 
-							Ok(())
-						},
-					)),
+						Ok(())
+					})),
 					&mut token,
 				)?;
 			}
@@ -520,10 +476,7 @@ impl InnerWebView {
 				if custom_protocols.contains(name) {
 					// WebView2 supports non-standard protocols only on Windows
 					// 10+, so we have to use this workaround See https://github.com/MicrosoftEdge/WebView2Feedback/issues/73
-					url = url.replace(
-						&format!("{name}://"),
-						&format!("{scheme}://{name}."),
-					)
+					url = url.replace(&format!("{name}://"), &format!("{scheme}://{name}."))
 				}
 			}
 
@@ -547,8 +500,7 @@ impl InnerWebView {
 			controller.SetIsVisible(attributes.visible)?;
 
 			if attributes.focused {
-				controller
-					.MoveFocus(COREWEBVIEW2_MOVE_FOCUS_REASON_PROGRAMMATIC)?;
+				controller.MoveFocus(COREWEBVIEW2_MOVE_FOCUS_REASON_PROGRAMMATIC)?;
 			}
 		}
 
@@ -584,9 +536,7 @@ impl InnerWebView {
 		}
 
 		if let Ok(settings6) = settings.cast::<ICoreWebView2Settings6>() {
-			settings6.SetIsSwipeNavigationEnabled(
-				attributes.back_forward_navigation_gestures,
-			)?;
+			settings6.SetIsSwipeNavigationEnabled(attributes.back_forward_navigation_gestures)?;
 		}
 
 		if let Ok(settings9) = settings.cast::<ICoreWebView2Settings9>() {
@@ -605,9 +555,7 @@ impl InnerWebView {
 	) -> Result<()> {
 		// Close container HWND when `window.close` is called in JS
 		webview.add_WindowCloseRequested(
-			&WindowCloseRequestedEventHandler::create(Box::new(move |_, _| {
-				DestroyWindow(hwnd)
-			})),
+			&WindowCloseRequestedEventHandler::create(Box::new(move |_, _| DestroyWindow(hwnd))),
 			token,
 		)?;
 
@@ -616,64 +564,56 @@ impl InnerWebView {
 			attributes.document_title_changed_handler.take()
 		{
 			webview.add_DocumentTitleChanged(
-				&DocumentTitleChangedEventHandler::create(Box::new(
-					move |webview, _| {
-						let Some(webview) = webview else {
-							return Ok(());
-						};
+				&DocumentTitleChangedEventHandler::create(Box::new(move |webview, _| {
+					let Some(webview) = webview else {
+						return Ok(());
+					};
 
-						let title = {
-							let mut title = PWSTR::null();
-							webview.DocumentTitle(&mut title)?;
-							take_pwstr(title)
-						};
+					let title = {
+						let mut title = PWSTR::null();
+						webview.DocumentTitle(&mut title)?;
+						take_pwstr(title)
+					};
 
-						document_title_changed_handler(title);
-						Ok(())
-					},
-				)),
+					document_title_changed_handler(title);
+					Ok(())
+				})),
 				token,
 			)?;
 		}
 
 		// Page load handler
-		if let Some(on_page_load_handler) =
-			attributes.on_page_load_handler.take()
-		{
+		if let Some(on_page_load_handler) = attributes.on_page_load_handler.take() {
 			let on_page_load_handler = Rc::new(on_page_load_handler);
 			let on_page_load_handler_ = on_page_load_handler.clone();
 			webview.add_ContentLoading(
-				&ContentLoadingEventHandler::create(Box::new(
-					move |webview, _| {
-						let Some(webview) = webview else {
-							return Ok(());
-						};
+				&ContentLoadingEventHandler::create(Box::new(move |webview, _| {
+					let Some(webview) = webview else {
+						return Ok(());
+					};
 
-						on_page_load_handler_(
-							PageLoadEvent::Started,
-							Self::url_from_webview(&webview)?,
-						);
+					on_page_load_handler_(
+						PageLoadEvent::Started,
+						Self::url_from_webview(&webview)?,
+					);
 
-						Ok(())
-					},
-				)),
+					Ok(())
+				})),
 				token,
 			)?;
 			webview.add_NavigationCompleted(
-				&NavigationCompletedEventHandler::create(Box::new(
-					move |webview, _| {
-						let Some(webview) = webview else {
-							return Ok(());
-						};
+				&NavigationCompletedEventHandler::create(Box::new(move |webview, _| {
+					let Some(webview) = webview else {
+						return Ok(());
+					};
 
-						on_page_load_handler(
-							PageLoadEvent::Finished,
-							Self::url_from_webview(&webview)?,
-						);
+					on_page_load_handler(
+						PageLoadEvent::Finished,
+						Self::url_from_webview(&webview)?,
+					);
 
-						Ok(())
-					},
-				)),
+					Ok(())
+				})),
 				token,
 			)?;
 		}
@@ -681,51 +621,45 @@ impl InnerWebView {
 		// Navigation handler
 		if let Some(nav_callback) = attributes.navigation_handler.take() {
 			webview.add_NavigationStarting(
-				&NavigationStartingEventHandler::create(Box::new(
-					move |_, args| {
-						let Some(args) = args else {
-							return Ok(());
-						};
+				&NavigationStartingEventHandler::create(Box::new(move |_, args| {
+					let Some(args) = args else {
+						return Ok(());
+					};
 
-						let uri = {
-							let mut uri = PWSTR::null();
-							args.Uri(&mut uri)?;
-							take_pwstr(uri)
-						};
+					let uri = {
+						let mut uri = PWSTR::null();
+						args.Uri(&mut uri)?;
+						take_pwstr(uri)
+					};
 
-						let allow = nav_callback(uri);
-						args.SetCancel(!allow)?;
+					let allow = nav_callback(uri);
+					args.SetCancel(!allow)?;
 
-						Ok(())
-					},
-				)),
+					Ok(())
+				})),
 				token,
 			)?;
 		}
 
 		// New window handler
-		if let Some(new_window_req_handler) =
-			attributes.new_window_req_handler.take()
-		{
+		if let Some(new_window_req_handler) = attributes.new_window_req_handler.take() {
 			webview.add_NewWindowRequested(
-				&NewWindowRequestedEventHandler::create(Box::new(
-					move |_, args| {
-						let Some(args) = args else {
-							return Ok(());
-						};
+				&NewWindowRequestedEventHandler::create(Box::new(move |_, args| {
+					let Some(args) = args else {
+						return Ok(());
+					};
 
-						let uri = {
-							let mut uri = PWSTR::null();
-							args.Uri(&mut uri)?;
-							take_pwstr(uri)
-						};
+					let uri = {
+						let mut uri = PWSTR::null();
+						args.Uri(&mut uri)?;
+						take_pwstr(uri)
+					};
 
-						let allow = new_window_req_handler(uri);
-						args.SetHandled(!allow)?;
+					let allow = new_window_req_handler(uri);
+					args.SetHandled(!allow)?;
 
-						Ok(())
-					},
-				)),
+					Ok(())
+				})),
 				token,
 			)?;
 		}
@@ -734,93 +668,83 @@ impl InnerWebView {
 		if attributes.download_started_handler.is_some()
 			|| attributes.download_completed_handler.is_some()
 		{
-			let mut download_started_handler =
-				attributes.download_started_handler.take();
-			let download_completed_handler =
-				attributes.download_completed_handler.take();
+			let mut download_started_handler = attributes.download_started_handler.take();
+			let download_completed_handler = attributes.download_completed_handler.take();
 
 			let webview4:ICoreWebView2_4 = webview.cast()?;
 			webview4.add_DownloadStarting(
-				&DownloadStartingEventHandler::create(Box::new(
-					move |_, args| {
-						let Some(args) = args else {
-							return Ok(());
-						};
+				&DownloadStartingEventHandler::create(Box::new(move |_, args| {
+					let Some(args) = args else {
+						return Ok(());
+					};
 
-						let uri = {
-							let mut uri = PWSTR::null();
-							args.DownloadOperation()?.Uri(&mut uri)?;
-							take_pwstr(uri)
-						};
+					let uri = {
+						let mut uri = PWSTR::null();
+						args.DownloadOperation()?.Uri(&mut uri)?;
+						take_pwstr(uri)
+					};
 
-						if let Some(download_completed_handler) =
-							&download_completed_handler
-						{
-							let download_completed_handler =
-								download_completed_handler.clone();
+					if let Some(download_completed_handler) = &download_completed_handler {
+						let download_completed_handler = download_completed_handler.clone();
 
-							args.DownloadOperation()?.add_StateChanged(
-								&StateChangedEventHandler::create(Box::new(
-									move |download_operation, _| {
-										let Some(download_operation) =
-											download_operation
-										else {
-											return Ok(());
+						args.DownloadOperation()?.add_StateChanged(
+							&StateChangedEventHandler::create(Box::new(
+								move |download_operation, _| {
+									let Some(download_operation) = download_operation else {
+										return Ok(());
+									};
+
+									let mut state = COREWEBVIEW2_DOWNLOAD_STATE::default();
+									download_operation.State(&mut state)?;
+
+									if state != COREWEBVIEW2_DOWNLOAD_STATE_IN_PROGRESS {
+										let uri = {
+											let mut uri = PWSTR::null();
+											download_operation.Uri(&mut uri)?;
+											take_pwstr(uri)
 										};
 
-										let mut state = COREWEBVIEW2_DOWNLOAD_STATE::default();
-										download_operation.State(&mut state)?;
+										let success =
+											state == COREWEBVIEW2_DOWNLOAD_STATE_COMPLETED;
 
-										if state != COREWEBVIEW2_DOWNLOAD_STATE_IN_PROGRESS {
-                  let uri = {
-                    let mut uri = PWSTR::null();
-                    download_operation.Uri(&mut uri)?;
-                    take_pwstr(uri)
-                  };
+										let path = if success {
+											let mut path = PWSTR::null();
+											download_operation.ResultFilePath(&mut path)?;
+											Some(PathBuf::from(take_pwstr(path)))
+										} else {
+											None
+										};
 
-                  let success = state == COREWEBVIEW2_DOWNLOAD_STATE_COMPLETED;
+										download_completed_handler(uri, path, success);
+									}
 
-                  let path = if success {
-                    let mut path = PWSTR::null();
-                    download_operation.ResultFilePath(&mut path)?;
-                    Some(PathBuf::from(take_pwstr(path)))
-                  } else {
-                    None
-                  };
+									Ok(())
+								},
+							)),
+							&mut EventRegistrationToken::default(),
+						)?;
+					}
 
-                  download_completed_handler(uri, path, success);
-                }
+					if let Some(download_started_handler) = &mut download_started_handler {
+						let mut path = {
+							let mut path = PWSTR::null();
+							args.ResultFilePath(&mut path)?;
+							let path = take_pwstr(path);
+							PathBuf::from(&path)
+						};
 
-										Ok(())
-									},
-								)),
-								&mut EventRegistrationToken::default(),
-							)?;
+						if download_started_handler(uri, &mut path) {
+							let simplified = dunce::simplified(&path);
+							let path = HSTRING::from(simplified);
+							args.SetResultFilePath(&path)?;
+							args.SetHandled(true)?;
+						} else {
+							args.SetCancel(true)?;
 						}
+					}
 
-						if let Some(download_started_handler) =
-							&mut download_started_handler
-						{
-							let mut path = {
-								let mut path = PWSTR::null();
-								args.ResultFilePath(&mut path)?;
-								let path = take_pwstr(path);
-								PathBuf::from(&path)
-							};
-
-							if download_started_handler(uri, &mut path) {
-								let simplified = dunce::simplified(&path);
-								let path = HSTRING::from(simplified);
-								args.SetResultFilePath(&path)?;
-								args.SetHandled(true)?;
-							} else {
-								args.SetCancel(true)?;
-							}
-						}
-
-						Ok(())
-					},
-				)),
+					Ok(())
+				})),
 				token,
 			)?;
 		}
@@ -843,33 +767,29 @@ impl InnerWebView {
 
 		let ipc_handler = attributes.ipc_handler.take();
 		webview.add_WebMessageReceived(
-			&WebMessageReceivedEventHandler::create(Box::new(
-				move |_, args| {
-					let (Some(args), Some(ipc_handler)) = (args, &ipc_handler)
-					else {
-						return Ok(());
-					};
+			&WebMessageReceivedEventHandler::create(Box::new(move |_, args| {
+				let (Some(args), Some(ipc_handler)) = (args, &ipc_handler) else {
+					return Ok(());
+				};
 
-					let url = {
-						let mut url = PWSTR::null();
-						args.Source(&mut url)?;
-						take_pwstr(url)
-					};
+				let url = {
+					let mut url = PWSTR::null();
+					args.Source(&mut url)?;
+					take_pwstr(url)
+				};
 
-					let js = {
-						let mut js = PWSTR::null();
-						args.TryGetWebMessageAsString(&mut js)?;
-						take_pwstr(js)
-					};
+				let js = {
+					let mut js = PWSTR::null();
+					args.TryGetWebMessageAsString(&mut js)?;
+					take_pwstr(js)
+				};
 
-					#[cfg(feature = "tracing")]
-					let _span = tracing::info_span!(parent: None, "wry::ipc::handle")
-						.entered();
-					ipc_handler(Request::builder().uri(url).body(js).unwrap());
+				#[cfg(feature = "tracing")]
+				let _span = tracing::info_span!(parent: None, "wry::ipc::handle").entered();
+				ipc_handler(Request::builder().uri(url).body(js).unwrap());
 
-					Ok(())
-				},
-			)),
+				Ok(())
+			})),
 			token,
 		)?;
 
@@ -889,10 +809,8 @@ impl InnerWebView {
 			// WebView2 supports non-standard protocols only on Windows 10+, so
 			// we have to use this workaround See https://github.com/MicrosoftEdge/WebView2Feedback/issues/73
 			let filter = HSTRING::from(format!("{scheme}://{name}.*"));
-			webview.AddWebResourceRequestedFilter(
-				&filter,
-				COREWEBVIEW2_WEB_RESOURCE_CONTEXT_ALL,
-			)?;
+			webview
+				.AddWebResourceRequestedFilter(&filter, COREWEBVIEW2_WEB_RESOURCE_CONTEXT_ALL)?;
 		}
 
 		let env = env.clone();
@@ -1021,11 +939,7 @@ impl InnerWebView {
 				let mut cb_read = 0;
 				let content:IStream = content.cast()?;
 				content
-					.Read(
-						buffer.as_mut_ptr() as *mut _,
-						buffer.len() as u32,
-						Some(&mut cb_read),
-					)
+					.Read(buffer.as_mut_ptr() as *mut _, buffer.len() as u32, Some(&mut cb_read))
 					.ok()?;
 
 				if cb_read == 0 {
@@ -1072,12 +986,7 @@ impl InnerWebView {
 			stream = SHCreateMemStream(Some(content));
 		}
 
-		env.CreateWebResourceResponse(
-			stream.as_ref(),
-			status_code as i32,
-			&status,
-			&headers_map,
-		)
+		env.CreateWebResourceResponse(stream.as_ref(), status_code as i32, &status, &headers_map)
 	}
 
 	#[inline]
@@ -1087,8 +996,7 @@ impl InnerWebView {
 	) -> windows::core::Result<ICoreWebView2WebResourceResponse> {
 		let status = StatusCode::BAD_REQUEST;
 		let status_code = status.as_u16();
-		let status =
-			HSTRING::from(status.canonical_reason().unwrap_or("Bad Request"));
+		let status = HSTRING::from(status.canonical_reason().unwrap_or("Bad Request"));
 		let error = HSTRING::from(err.to_string());
 		env.CreateWebResourceResponse(None, status_code as i32, &status, &error)
 	}
@@ -1104,10 +1012,7 @@ impl InnerWebView {
 		let raw = Box::into_raw(boxed2);
 
 		let res = PostMessageW(hwnd, *EXEC_MSG_ID, WPARAM(raw as _), LPARAM(0));
-		assert!(
-			res.is_ok(),
-			"PostMessage failed ; is the messages queue full?"
-		);
+		assert!(res.is_ok(), "PostMessage failed ; is the messages queue full?");
 	}
 
 	unsafe extern "system" fn main_thread_dispatcher_proc(
@@ -1119,11 +1024,9 @@ impl InnerWebView {
 		_dwrefdata:usize,
 	) -> LRESULT {
 		if msg == *EXEC_MSG_ID {
-			let mut function:Box<Box<dyn FnMut()>> =
-				Box::from_raw(wparam.0 as *mut _);
+			let mut function:Box<Box<dyn FnMut()>> = Box::from_raw(wparam.0 as *mut _);
 			function();
-			let _ =
-				RedrawWindow(hwnd, None, HRGN::default(), RDW_INTERNALPAINT);
+			let _ = RedrawWindow(hwnd, None, HRGN::default(), RDW_INTERNALPAINT);
 			return LRESULT(0);
 		}
 
@@ -1156,12 +1059,8 @@ impl InnerWebView {
 					let width = rect.right - rect.left;
 					let height = rect.bottom - rect.top;
 
-					let _ = (*controller).SetBounds(RECT {
-						left:0,
-						top:0,
-						right:width,
-						bottom:height,
-					});
+					let _ =
+						(*controller).SetBounds(RECT { left:0, top:0, right:width, bottom:height });
 
 					let mut hwnd = HWND::default();
 					if (*controller).ParentWindow(&mut hwnd).is_ok() {
@@ -1172,9 +1071,7 @@ impl InnerWebView {
 							0,
 							width,
 							height,
-							SWP_ASYNCWINDOWPOS
-								| SWP_NOACTIVATE | SWP_NOZORDER
-								| SWP_NOMOVE,
+							SWP_ASYNCWINDOWPOS | SWP_NOACTIVATE | SWP_NOZORDER | SWP_NOMOVE,
 						);
 					}
 				}
@@ -1182,8 +1079,7 @@ impl InnerWebView {
 
 			WM_SETFOCUS | WM_ENTERSIZEMOVE => {
 				let controller = dwrefdata as *mut ICoreWebView2Controller;
-				let _ = (*controller)
-					.MoveFocus(COREWEBVIEW2_MOVE_FOCUS_REASON_PROGRAMMATIC);
+				let _ = (*controller).MoveFocus(COREWEBVIEW2_MOVE_FOCUS_REASON_PROGRAMMATIC);
 			},
 
 			WM_WINDOWPOSCHANGED => {
@@ -1195,9 +1091,7 @@ impl InnerWebView {
 				// check if `dwrefdata` is null to avoid double-freeing the
 				// controller
 				if !(dwrefdata as *mut ()).is_null() {
-					drop(Box::from_raw(
-						dwrefdata as *mut ICoreWebView2Controller,
-					));
+					drop(Box::from_raw(dwrefdata as *mut ICoreWebView2Controller));
 
 					// update `dwrefdata` to null to avoid double-freeing the
 					// controller
@@ -1217,10 +1111,7 @@ impl InnerWebView {
 	}
 
 	#[inline]
-	unsafe fn attach_parent_subclass(
-		parent:HWND,
-		controller:&ICoreWebView2Controller,
-	) {
+	unsafe fn attach_parent_subclass(parent:HWND, controller:&ICoreWebView2Controller) {
 		let _ = SetWindowSubclass(
 			parent,
 			Some(Self::parent_subclass_proc),
@@ -1231,36 +1122,23 @@ impl InnerWebView {
 
 	#[inline]
 	unsafe fn dettach_parent_subclass(parent:HWND) {
-		SendMessageW(
-			parent,
-			PARENT_DESTROY_MESSAGE,
-			WPARAM::default(),
-			LPARAM::default(),
-		);
-		let _ = RemoveWindowSubclass(
-			parent,
-			Some(Self::parent_subclass_proc),
-			PARENT_SUBCLASS_ID as _,
-		);
+		SendMessageW(parent, PARENT_DESTROY_MESSAGE, WPARAM::default(), LPARAM::default());
+		let _ =
+			RemoveWindowSubclass(parent, Some(Self::parent_subclass_proc), PARENT_SUBCLASS_ID as _);
 	}
 
 	// TODO: feature to allow injecting into (specific) subframes
 	#[inline]
-	fn add_script_to_execute_on_document_created(
-		webview:&ICoreWebView2,
-		js:String,
-	) -> Result<()> {
+	fn add_script_to_execute_on_document_created(webview:&ICoreWebView2, js:String) -> Result<()> {
 		let webview = webview.clone();
 		AddScriptToExecuteOnDocumentCreatedCompletedHandler::wait_for_async_operation(
-      Box::new(move |handler| unsafe {
-        let js = HSTRING::from(js);
-        webview
-          .AddScriptToExecuteOnDocumentCreated(&js, &handler)
-          .map_err(Into::into)
-      }),
-      Box::new(|e, _| e),
-    )
-    .map_err(Into::into)
+			Box::new(move |handler| unsafe {
+				let js = HSTRING::from(js);
+				webview.AddScriptToExecuteOnDocumentCreated(&js, &handler).map_err(Into::into)
+			}),
+			Box::new(|e, _| e),
+		)
+		.map_err(Into::into)
 	}
 
 	#[inline]
@@ -1286,9 +1164,7 @@ impl InnerWebView {
 	}
 
 	#[inline]
-	fn url_from_webview(
-		webview:&ICoreWebView2,
-	) -> windows::core::Result<String> {
+	fn url_from_webview(webview:&ICoreWebView2) -> windows::core::Result<String> {
 		let mut pwstr = PWSTR::null();
 		unsafe { webview.Source(&mut pwstr)? };
 		Ok(take_pwstr(pwstr))
@@ -1303,12 +1179,8 @@ impl InnerWebView {
 		callback:Option<impl FnOnce(String) + Send + 'static>,
 	) -> Result<()> {
 		match callback {
-			Some(callback) => {
-				Self::execute_script(&self.webview, js.to_string(), callback)?
-			},
-			None => {
-				Self::execute_script(&self.webview, js.to_string(), |_| ())?
-			},
+			Some(callback) => Self::execute_script(&self.webview, js.to_string(), callback)?,
+			None => Self::execute_script(&self.webview, js.to_string(), |_| ())?,
 		}
 
 		Ok(())
@@ -1319,8 +1191,7 @@ impl InnerWebView {
 	}
 
 	pub fn zoom(&self, scale_factor:f64) -> Result<()> {
-		unsafe { self.controller.SetZoomFactor(scale_factor) }
-			.map_err(Into::into)
+		unsafe { self.controller.SetZoomFactor(scale_factor) }.map_err(Into::into)
 	}
 
 	pub fn load_url(&self, url:&str) -> Result<()> {
@@ -1328,11 +1199,7 @@ impl InnerWebView {
 		unsafe { self.webview.Navigate(&url) }.map_err(Into::into)
 	}
 
-	pub fn load_url_with_headers(
-		&self,
-		url:&str,
-		headers:http::HeaderMap,
-	) -> Result<()> {
+	pub fn load_url_with_headers(&self, url:&str, headers:http::HeaderMap) -> Result<()> {
 		load_url_with_headers(&self.webview, &self.env, url, headers)
 	}
 
@@ -1348,24 +1215,15 @@ impl InnerWebView {
 			unsafe { GetClientRect(self.hwnd, &mut rect)? };
 
 			let position_point = &mut [POINT { x:rect.left, y:rect.top }];
-			unsafe {
-				MapWindowPoints(
-					self.hwnd,
-					*self.parent.borrow(),
-					position_point,
-				)
-			};
+			unsafe { MapWindowPoints(self.hwnd, *self.parent.borrow(), position_point) };
 
 			bounds.position =
-				PhysicalPosition::new(position_point[0].x, position_point[0].y)
-					.into();
+				PhysicalPosition::new(position_point[0].x, position_point[0].y).into();
 		} else {
 			unsafe { self.controller.Bounds(&mut rect) }?;
 		}
 
-		bounds.size =
-			PhysicalSize::new(rect.right - rect.left, rect.bottom - rect.top)
-				.into();
+		bounds.size = PhysicalSize::new(rect.right - rect.left, rect.bottom - rect.top).into();
 
 		Ok(bounds)
 	}
@@ -1465,10 +1323,7 @@ impl InnerWebView {
 	}
 
 	pub fn print(&self) -> Result<()> {
-		self.eval(
-			"window.print()",
-			None::<Box<dyn FnOnce(String) + Send + 'static>>,
-		)
+		self.eval("window.print()", None::<Box<dyn FnOnce(String) + Send + 'static>>)
 	}
 
 	pub fn clear_all_browsing_data(&self) -> Result<()> {
@@ -1477,11 +1332,9 @@ impl InnerWebView {
 				.cast::<ICoreWebView2_13>()?
 				.Profile()?
 				.cast::<ICoreWebView2Profile2>()?
-				.ClearBrowsingDataAll(
-					&ClearBrowsingDataCompletedHandler::create(Box::new(
-						move |_| Ok(()),
-					)),
-				)
+				.ClearBrowsingDataAll(&ClearBrowsingDataCompletedHandler::create(Box::new(
+					move |_| Ok(()),
+				)))
 				.map_err(Into::into)
 		}
 	}
@@ -1491,10 +1344,7 @@ impl InnerWebView {
 	}
 
 	pub fn set_background_color(&self, background_color:RGBA) -> Result<()> {
-		unsafe {
-			set_background_color(&self.controller, background_color)
-				.map_err(Into::into)
-		}
+		unsafe { set_background_color(&self.controller, background_color).map_err(Into::into) }
 	}
 
 	pub fn set_memory_usage_level(&self, level:MemoryUsageLevel) -> Result<()> {
@@ -1509,9 +1359,7 @@ impl InnerWebView {
 	}
 
 	#[cfg(any(debug_assertions, feature = "devtools"))]
-	pub fn open_devtools(&self) {
-		let _ = unsafe { self.webview.OpenDevToolsWindow() };
-	}
+	pub fn open_devtools(&self) { let _ = unsafe { self.webview.OpenDevToolsWindow() }; }
 
 	#[cfg(any(debug_assertions, feature = "devtools"))]
 	pub fn close_devtools(&self) {}
@@ -1554,9 +1402,7 @@ fn load_url_with_headers(
 	unsafe {
 		let env = env.cast::<ICoreWebView2Environment9>()?;
 		let method = HSTRING::from("GET");
-		if let Ok(request) =
-			env.CreateWebResourceRequest(&url, &method, None, &headers_map)
-		{
+		if let Ok(request) = env.CreateWebResourceRequest(&url, &method, None, &headers_map) {
 			let webview:ICoreWebView2_10 = webview.cast()?;
 			webview.NavigateWithWebResourceRequest(&request)?;
 		}
@@ -1600,11 +1446,7 @@ unsafe fn set_theme(webview:&ICoreWebView2, theme:Theme) -> Result<()> {
 }
 
 #[inline]
-fn is_custom_protocol_uri(
-	uri:&str,
-	scheme:&'static str,
-	protocol:&str,
-) -> bool {
+fn is_custom_protocol_uri(uri:&str, scheme:&'static str, protocol:&str) -> bool {
 	let uri_len = uri.len();
 	let scheme_len = scheme.len();
 	let protocol_len = protocol.len();
@@ -1621,12 +1463,7 @@ fn is_custom_protocol_uri(
 
 pub fn platform_webview_version() -> Result<String> {
 	let mut versioninfo = PWSTR::null();
-	unsafe {
-		GetAvailableCoreWebView2BrowserVersionString(
-			PCWSTR::null(),
-			&mut versioninfo,
-		)
-	}?;
+	unsafe { GetAvailableCoreWebView2BrowserVersionString(PCWSTR::null(), &mut versioninfo) }?;
 	Ok(take_pwstr(versioninfo))
 }
 

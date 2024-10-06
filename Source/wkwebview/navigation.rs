@@ -13,26 +13,18 @@ use objc::{
 use super::{url_from_webview, InnerWebView, NSString};
 use crate::PageLoadEvent;
 
-extern fn did_commit_navigation(
-	this:&Object,
-	_:Sel,
-	webview:id,
-	_navigation:id,
-) {
+extern fn did_commit_navigation(this:&Object, _:Sel, webview:id, _navigation:id) {
 	unsafe {
 		// Call on_load_handler
-		let on_page_load =
-			this.get_ivar::<*mut c_void>("on_page_load_function");
+		let on_page_load = this.get_ivar::<*mut c_void>("on_page_load_function");
 		if !on_page_load.is_null() {
-			let on_page_load =
-				&mut *(*on_page_load as *mut Box<dyn Fn(PageLoadEvent)>);
+			let on_page_load = &mut *(*on_page_load as *mut Box<dyn Fn(PageLoadEvent)>);
 			on_page_load(PageLoadEvent::Started);
 		}
 
 		// Inject scripts
 		let pending_scripts_ptr:*mut c_void = *this.get_ivar("pending_scripts");
-		let pending_scripts =
-			&(*(pending_scripts_ptr as *mut Arc<Mutex<Option<Vec<String>>>>));
+		let pending_scripts = &(*(pending_scripts_ptr as *mut Arc<Mutex<Option<Vec<String>>>>));
 		let mut pending_scripts_ = pending_scripts.lock().unwrap();
 		if let Some(pending_scripts) = &*pending_scripts_ {
 			for script in pending_scripts {
@@ -43,19 +35,12 @@ extern fn did_commit_navigation(
 	}
 }
 
-extern fn did_finish_navigation(
-	this:&Object,
-	_:Sel,
-	_webview:id,
-	_navigation:id,
-) {
+extern fn did_finish_navigation(this:&Object, _:Sel, _webview:id, _navigation:id) {
 	unsafe {
 		// Call on_load_handler
-		let on_page_load =
-			this.get_ivar::<*mut c_void>("on_page_load_function");
+		let on_page_load = this.get_ivar::<*mut c_void>("on_page_load_function");
 		if !on_page_load.is_null() {
-			let on_page_load =
-				&mut *(*on_page_load as *mut Box<dyn Fn(PageLoadEvent)>);
+			let on_page_load = &mut *(*on_page_load as *mut Box<dyn Fn(PageLoadEvent)>);
 			on_page_load(PageLoadEvent::Finished);
 		}
 	}
@@ -87,17 +72,11 @@ pub(crate) unsafe fn set_navigation_methods(
 	on_page_load_handler:Option<Box<dyn Fn(PageLoadEvent, String)>>,
 ) -> *mut Box<dyn Fn(PageLoadEvent)> {
 	if let Some(on_page_load_handler) = on_page_load_handler {
-		let on_page_load_handler =
-			Box::into_raw(Box::new(Box::new(move |event| {
-				on_page_load_handler(
-					event,
-					url_from_webview(webview).unwrap_or_default(),
-				);
-			}) as Box<dyn Fn(PageLoadEvent)>));
-		(*navigation_policy_handler).set_ivar(
-			"on_page_load_function",
-			on_page_load_handler as *mut _ as *mut c_void,
-		);
+		let on_page_load_handler = Box::into_raw(Box::new(Box::new(move |event| {
+			on_page_load_handler(event, url_from_webview(webview).unwrap_or_default());
+		}) as Box<dyn Fn(PageLoadEvent)>));
+		(*navigation_policy_handler)
+			.set_ivar("on_page_load_function", on_page_load_handler as *mut _ as *mut c_void);
 		on_page_load_handler
 	} else {
 		null_mut()

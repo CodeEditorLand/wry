@@ -52,9 +52,7 @@ impl WebContext {
 	///
 	/// **Note:** This is currently only enforced on Linux, and has the
 	/// stipulation that only 1 context allows automation at a time.
-	pub fn set_allows_automation(&mut self, flag:bool) {
-		self.os.set_allows_automation(flag);
-	}
+	pub fn set_allows_automation(&mut self, flag:bool) { self.os.set_allows_automation(flag); }
 }
 
 impl Default for WebContext {
@@ -73,9 +71,7 @@ pub struct WebContextData {
 
 impl WebContextData {
 	/// A reference to the data directory the context was created with.
-	pub fn data_directory(&self) -> Option<&Path> {
-		self.data_directory.as_deref()
-	}
+	pub fn data_directory(&self) -> Option<&Path> { self.data_directory.as_deref() }
 }
 
 #[cfg(not(gtk))]

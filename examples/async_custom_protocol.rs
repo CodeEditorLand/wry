@@ -58,10 +58,7 @@ fn main() -> wry::Result<()> {
 	event_loop.run(move |event, _, control_flow| {
 		*control_flow = ControlFlow::Wait;
 
-		if let Event::WindowEvent {
-			event: WindowEvent::CloseRequested, ..
-		} = event
-		{
+		if let Event::WindowEvent { event: WindowEvent::CloseRequested, .. } = event {
 			*control_flow = ControlFlow::Exit
 		}
 	});

@@ -31,12 +31,10 @@ fn main() -> wry::Result<()> {
 
 		// we need to ignore this error here otherwise it will be catched by
 		// winit and will be make the example crash
-		winit::platform::x11::register_xlib_error_hook(Box::new(
-			|_display, error| {
-				let error = error as *mut x11_dl::xlib::XErrorEvent;
-				(unsafe { (*error).error_code }) == 170
-			},
-		));
+		winit::platform::x11::register_xlib_error_hook(Box::new(|_display, error| {
+			let error = error as *mut x11_dl::xlib::XErrorEvent;
+			(unsafe { (*error).error_code }) == 170
+		}));
 	}
 
 	let event_loop = EventLoop::new().unwrap();
@@ -70,8 +68,7 @@ fn main() -> wry::Result<()> {
 		.build()?;
 	let webview4 = WebViewBuilder::new_as_child(&window)
 		.with_bounds(Rect {
-			position:LogicalPosition::new(size.width / 2, size.height / 2)
-				.into(),
+			position:LogicalPosition::new(size.width / 2, size.height / 2).into(),
 			size:LogicalSize::new(size.width / 2, size.height / 2).into(),
 		})
 		.with_url("https://google.com")
@@ -93,62 +90,34 @@ fn main() -> wry::Result<()> {
 			}
 
 			match event {
-				Event::WindowEvent {
-					event: WindowEvent::Resized(size),
-					..
-				} => {
+				Event::WindowEvent { event: WindowEvent::Resized(size), .. } => {
 					let size = size.to_logical::<u32>(window.scale_factor());
 					webview
 						.set_bounds(Rect {
 							position:LogicalPosition::new(0, 0).into(),
-							size:LogicalSize::new(
-								size.width / 2,
-								size.height / 2,
-							)
-							.into(),
+							size:LogicalSize::new(size.width / 2, size.height / 2).into(),
 						})
 						.unwrap();
 					webview2
 						.set_bounds(Rect {
-							position:LogicalPosition::new(size.width / 2, 0)
-								.into(),
-							size:LogicalSize::new(
-								size.width / 2,
-								size.height / 2,
-							)
-							.into(),
+							position:LogicalPosition::new(size.width / 2, 0).into(),
+							size:LogicalSize::new(size.width / 2, size.height / 2).into(),
 						})
 						.unwrap();
 					webview3
 						.set_bounds(Rect {
-							position:LogicalPosition::new(0, size.height / 2)
-								.into(),
-							size:LogicalSize::new(
-								size.width / 2,
-								size.height / 2,
-							)
-							.into(),
+							position:LogicalPosition::new(0, size.height / 2).into(),
+							size:LogicalSize::new(size.width / 2, size.height / 2).into(),
 						})
 						.unwrap();
 					webview4
 						.set_bounds(Rect {
-							position:LogicalPosition::new(
-								size.width / 2,
-								size.height / 2,
-							)
-							.into(),
-							size:LogicalSize::new(
-								size.width / 2,
-								size.height / 2,
-							)
-							.into(),
+							position:LogicalPosition::new(size.width / 2, size.height / 2).into(),
+							size:LogicalSize::new(size.width / 2, size.height / 2).into(),
 						})
 						.unwrap();
 				},
-				Event::WindowEvent {
-					event: WindowEvent::CloseRequested,
-					..
-				} => evl.exit(),
+				Event::WindowEvent { event: WindowEvent::CloseRequested, .. } => evl.exit(),
 				_ => {},
 			}
 		})

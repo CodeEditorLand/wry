@@ -58,8 +58,8 @@ pub enum Error {
 	#[error("Custom protocol task is invalid.")]
 	CustomProtocolTaskInvalid,
 	#[error(
-		"Failed to register URL scheme: {0}, could be due to invalid URL \
-		 scheme or the scheme is already registered."
+		"Failed to register URL scheme: {0}, could be due to invalid URL scheme or the scheme is \
+		 already registered."
 	)]
 	UrlSchemeRegisterError(String),
 }

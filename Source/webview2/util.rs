@@ -39,11 +39,8 @@ fn get_function_impl(library:&str, function:&str) -> FARPROC {
 
 macro_rules! get_function {
 	($lib:expr, $func:ident) => {
-		crate::webview2::util::get_function_impl(
-			$lib,
-			concat!(stringify!($func), '\0'),
-		)
-		.map(|f| unsafe { std::mem::transmute::<_, $func>(f) })
+		crate::webview2::util::get_function_impl($lib, concat!(stringify!($func), '\0'))
+			.map(|f| unsafe { std::mem::transmute::<_, $func>(f) })
 	};
 }
 
@@ -82,9 +79,7 @@ pub unsafe fn hwnd_dpi(hwnd:HWND) -> u32 {
 		let mut dpi_x = 0;
 		let mut dpi_y = 0;
 		#[allow(clippy::unnecessary_cast)]
-		if GetDpiForMonitor(monitor, MDT_EFFECTIVE_DPI, &mut dpi_x, &mut dpi_y)
-			== S_OK
-		{
+		if GetDpiForMonitor(monitor, MDT_EFFECTIVE_DPI, &mut dpi_x, &mut dpi_y) == S_OK {
 			dpi_x as u32
 		} else {
 			BASE_DPI

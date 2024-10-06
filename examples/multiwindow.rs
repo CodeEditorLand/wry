@@ -6,12 +6,7 @@ use std::collections::HashMap;
 
 use tao::{
 	event::{Event, WindowEvent},
-	event_loop::{
-		ControlFlow,
-		EventLoopBuilder,
-		EventLoopProxy,
-		EventLoopWindowTarget,
-	},
+	event_loop::{ControlFlow, EventLoopBuilder, EventLoopProxy, EventLoopWindowTarget},
 	window::{Window, WindowBuilder, WindowId},
 };
 use wry::{http::Request, WebView, WebViewBuilder};
@@ -27,22 +22,15 @@ fn main() -> wry::Result<()> {
 	let mut webviews = HashMap::new();
 	let proxy = event_loop.create_proxy();
 
-	let new_window = create_new_window(
-		format!("Window {}", webviews.len() + 1),
-		&event_loop,
-		proxy.clone(),
-	);
+	let new_window =
+		create_new_window(format!("Window {}", webviews.len() + 1), &event_loop, proxy.clone());
 	webviews.insert(new_window.0.id(), (new_window.0, new_window.1));
 
 	event_loop.run(move |event, event_loop, control_flow| {
 		*control_flow = ControlFlow::Wait;
 
 		match event {
-			Event::WindowEvent {
-				event: WindowEvent::CloseRequested,
-				window_id,
-				..
-			} => {
+			Event::WindowEvent { event: WindowEvent::CloseRequested, window_id, .. } => {
 				webviews.remove(&window_id);
 				if webviews.is_empty() {
 					*control_flow = ControlFlow::Exit
@@ -54,8 +42,7 @@ fn main() -> wry::Result<()> {
 					event_loop,
 					proxy.clone(),
 				);
-				webviews
-					.insert(new_window.0.id(), (new_window.0, new_window.1));
+				webviews.insert(new_window.0.id(), (new_window.0, new_window.1));
 			},
 			Event::UserEvent(UserEvent::CloseWindow(id)) => {
 				webviews.remove(&id);
@@ -77,8 +64,7 @@ fn create_new_window(
 	event_loop:&EventLoopWindowTarget<UserEvent>,
 	proxy:EventLoopProxy<UserEvent>,
 ) -> (Window, WebView) {
-	let window =
-		WindowBuilder::new().with_title(title).build(event_loop).unwrap();
+	let window = WindowBuilder::new().with_title(title).build(event_loop).unwrap();
 	let window_id = window.id();
 	let handler = move |req:Request<String>| {
 		let body = req.body();
@@ -119,15 +105,15 @@ fn create_new_window(
 	};
 
 	let webview = builder
-    .with_html(
-      r#"
+		.with_html(
+			r#"
         <button onclick="window.ipc.postMessage('new-window')">Open a new window</button>
         <button onclick="window.ipc.postMessage('close')">Close current window</button>
         <input oninput="window.ipc.postMessage(`change-title:${this.value}`)" />
     "#,
-    )
-    .with_ipc_handler(handler)
-    .build()
-    .unwrap();
+		)
+		.with_ipc_handler(handler)
+		.build()
+		.unwrap();
 	(window, webview)
 }

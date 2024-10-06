@@ -30,17 +30,11 @@ impl DragDropController {
 		}
 	}
 
-	fn store_paths(&self, paths:Vec<PathBuf>) {
-		unsafe { *self.paths.get() = Some(paths) };
-	}
+	fn store_paths(&self, paths:Vec<PathBuf>) { unsafe { *self.paths.get() = Some(paths) }; }
 
-	fn take_paths(&self) -> Option<Vec<PathBuf>> {
-		unsafe { &mut *self.paths.get() }.take()
-	}
+	fn take_paths(&self) -> Option<Vec<PathBuf>> { unsafe { &mut *self.paths.get() }.take() }
 
-	fn store_position(&self, position:(i32, i32)) {
-		self.position.replace(position);
-	}
+	fn store_position(&self, position:(i32, i32)) { self.position.replace(position); }
 
 	fn enter(&self) { self.has_entered.set(true); }
 
@@ -51,10 +45,7 @@ impl DragDropController {
 	fn call(&self, event:DragDropEvent) -> bool { (self.handler)(event) }
 }
 
-pub(crate) fn connect_drag_event(
-	webview:&WebView,
-	handler:Box<dyn Fn(DragDropEvent) -> bool>,
-) {
+pub(crate) fn connect_drag_event(webview:&WebView, handler:Box<dyn Fn(DragDropEvent) -> bool>) {
 	let controller = Rc::new(DragDropController::new(handler));
 
 	{
@@ -62,8 +53,7 @@ pub(crate) fn connect_drag_event(
 		webview.connect_drag_data_received(move |_, _, _, _, data, info, _| {
 			if info == 2 {
 				let uris = data.uris();
-				let paths =
-					uris.iter().map(path_buf_from_uri).collect::<Vec<_>>();
+				let paths = uris.iter().map(path_buf_from_uri).collect::<Vec<_>>();
 				controller.enter();
 				controller.call(DragDropEvent::Enter {
 					paths:paths.clone(),
@@ -92,8 +82,7 @@ pub(crate) fn connect_drag_event(
 			if controller.has_entered() {
 				if let Some(paths) = controller.take_paths() {
 					controller.leave();
-					return controller
-						.call(DragDropEvent::Drop { paths, position:(x, y) });
+					return controller.call(DragDropEvent::Drop { paths, position:(x, y) });
 				}
 			}
 

@@ -17,13 +17,7 @@ use std::{
 };
 
 use gtk::glib::{self, MainContext};
-use http::{
-	header::CONTENT_TYPE,
-	HeaderName,
-	HeaderValue,
-	Request,
-	Response as HttpResponse,
-};
+use http::{header::CONTENT_TYPE, HeaderName, HeaderValue, Request, Response as HttpResponse};
 use soup::{MessageHeaders, MessageHeadersType};
 use webkit2gtk::{
 	ApplicationInfo,
@@ -56,11 +50,7 @@ pub struct WebContextImpl {
 
 impl WebContextImpl {
 	pub fn new(data:&WebContextData) -> Self {
-		use webkit2gtk::{
-			CookieManagerExt,
-			WebsiteDataManager,
-			WebsiteDataManagerExt,
-		};
+		use webkit2gtk::{CookieManagerExt, WebsiteDataManager, WebsiteDataManagerExt};
 		let mut context_builder = WebContext::builder();
 		if let Some(data_directory) = data.data_directory() {
 			let data_manager = WebsiteDataManager::builder()
@@ -72,8 +62,7 @@ impl WebContextImpl {
 					CookiePersistentStorage::Text,
 				);
 			}
-			context_builder =
-				context_builder.website_data_manager(&data_manager);
+			context_builder = context_builder.website_data_manager(&data_manager);
 		}
 		let context = context_builder.build();
 
@@ -94,23 +83,12 @@ impl WebContextImpl {
 		let app_info = ApplicationInfo::new();
 		app_info.set_name(env!("CARGO_PKG_NAME"));
 		app_info.set_version(
-			env!("CARGO_PKG_VERSION_MAJOR")
-				.parse()
-				.expect("invalid wry version major"),
-			env!("CARGO_PKG_VERSION_MINOR")
-				.parse()
-				.expect("invalid wry version minor"),
-			env!("CARGO_PKG_VERSION_PATCH")
-				.parse()
-				.expect("invalid wry version patch"),
+			env!("CARGO_PKG_VERSION_MAJOR").parse().expect("invalid wry version major"),
+			env!("CARGO_PKG_VERSION_MINOR").parse().expect("invalid wry version minor"),
+			env!("CARGO_PKG_VERSION_PATCH").parse().expect("invalid wry version patch"),
 		);
 
-		Self {
-			context,
-			automation,
-			webview_uri_loader:Rc::default(),
-			app_info:Some(app_info),
-		}
+		Self { context, automation, webview_uri_loader:Rc::default(), app_info:Some(app_info) }
 	}
 
 	pub fn set_allows_automation(&mut self, flag:bool) {
@@ -125,23 +103,14 @@ pub trait WebContextExt {
 	fn context(&self) -> &WebContext;
 
 	/// Register a custom protocol to the web context.
-	fn register_uri_scheme<F>(
-		&mut self,
-		name:&str,
-		handler:F,
-	) -> crate::Result<()>
+	fn register_uri_scheme<F>(&mut self, name:&str, handler:F) -> crate::Result<()>
 	where
 		F: Fn(Request<Vec<u8>>, RequestAsyncResponder) + 'static;
 
 	/// Add a [`WebView`] to the queue waiting to be opened.
 	///
 	/// See the [`WebViewUriLoader`] for more information.
-	fn queue_load_uri(
-		&self,
-		webview:WebView,
-		url:String,
-		headers:Option<http::HeaderMap>,
-	);
+	fn queue_load_uri(&self, webview:WebView, url:String, headers:Option<http::HeaderMap>);
 
 	/// Flush all queued [`WebView`]s waiting to load a uri.
 	///
@@ -157,23 +126,15 @@ pub trait WebContextExt {
 
 	fn register_download_handler(
 		&mut self,
-		download_started_callback:Option<
-			Box<dyn FnMut(String, &mut PathBuf) -> bool>,
-		>,
-		download_completed_callback:Option<
-			Rc<dyn Fn(String, Option<PathBuf>, bool) + 'static>,
-		>,
+		download_started_callback:Option<Box<dyn FnMut(String, &mut PathBuf) -> bool>>,
+		download_completed_callback:Option<Rc<dyn Fn(String, Option<PathBuf>, bool) + 'static>>,
 	);
 }
 
 impl WebContextExt for super::WebContext {
 	fn context(&self) -> &WebContext { &self.os.context }
 
-	fn register_uri_scheme<F>(
-		&mut self,
-		name:&str,
-		handler:F,
-	) -> crate::Result<()>
+	fn register_uri_scheme<F>(&mut self, name:&str, handler:F) -> crate::Result<()>
 	where
 		F: Fn(Request<Vec<u8>>, RequestAsyncResponder) + 'static, {
 		// Enable secure context
@@ -298,12 +259,7 @@ impl WebContextExt for super::WebContext {
 		Ok(())
 	}
 
-	fn queue_load_uri(
-		&self,
-		webview:WebView,
-		url:String,
-		headers:Option<http::HeaderMap>,
-	) {
+	fn queue_load_uri(&self, webview:WebView, url:String, headers:Option<http::HeaderMap>) {
 		self.os.webview_uri_loader.push(webview, url, headers)
 	}
 
@@ -312,9 +268,7 @@ impl WebContextExt for super::WebContext {
 	fn allows_automation(&self) -> bool { self.os.automation }
 
 	fn register_automation(&mut self, webview:WebView) {
-		if let (true, Some(app_info)) =
-			(self.os.automation, self.os.app_info.take())
-		{
+		if let (true, Some(app_info)) = (self.os.automation, self.os.app_info.take()) {
 			self.os.context.connect_automation_started(move |_, auto| {
 				let webview = webview.clone();
 				auto.set_application_info(&app_info);
@@ -334,12 +288,8 @@ impl WebContextExt for super::WebContext {
 
 	fn register_download_handler(
 		&mut self,
-		download_started_handler:Option<
-			Box<dyn FnMut(String, &mut PathBuf) -> bool>,
-		>,
-		download_completed_handler:Option<
-			Rc<dyn Fn(String, Option<PathBuf>, bool) + 'static>,
-		>,
+		download_started_handler:Option<Box<dyn FnMut(String, &mut PathBuf) -> bool>>,
+		download_completed_handler:Option<Rc<dyn Fn(String, Option<PathBuf>, bool) + 'static>>,
 	) {
 		let context = &self.os.context;
 
@@ -349,19 +299,15 @@ impl WebContextExt for super::WebContext {
 		context.connect_download_started(move |_context, download| {
 			if let Some(uri) = download.request().and_then(|req| req.uri()) {
 				let uri = uri.to_string();
-				let mut download_location = download
-					.destination()
-					.map(PathBuf::from)
-					.unwrap_or_default();
+				let mut download_location =
+					download.destination().map(PathBuf::from).unwrap_or_default();
 
 				if let Some(download_started_handler) =
 					download_started_handler.borrow_mut().as_mut()
 				{
 					if download_started_handler(uri, &mut download_location) {
 						download.connect_response_notify(move |download| {
-							download.set_destination(
-								&download_location.to_string_lossy(),
-							);
+							download.set_destination(&download_location.to_string_lossy());
 						});
 					} else {
 						download.cancel();
@@ -376,25 +322,17 @@ impl WebContextExt for super::WebContext {
 				}
 			});
 
-			if let Some(download_completed_handler) =
-				download_completed_handler.clone()
-			{
+			if let Some(download_completed_handler) = download_completed_handler.clone() {
 				download.connect_finished({
 					let failed = failed.clone();
 					move |download| {
-						if let Some(uri) =
-							download.request().and_then(|req| req.uri())
-						{
+						if let Some(uri) = download.request().and_then(|req| req.uri()) {
 							let failed = *failed.borrow();
 							let uri = uri.to_string();
 							download_completed_handler(
 								uri,
 								(!failed)
-									.then(|| {
-										download
-											.destination()
-											.map(PathBuf::from)
-									})
+									.then(|| download.destination().map(PathBuf::from))
 									.flatten(),
 								!failed,
 							)
@@ -469,12 +407,7 @@ impl WebViewUriLoader {
 	fn unlock(&self) { self.lock.store(false, SeqCst) }
 
 	/// Add a [`WebView`] to the queue.
-	fn push(
-		&self,
-		webview:WebView,
-		uri:String,
-		headers:Option<http::HeaderMap>,
-	) {
+	fn push(&self, webview:WebView, uri:String, headers:Option<http::HeaderMap>) {
 		let mut queue = self.queue.lock().expect("poisoned load queue");
 		queue.push_back(WebviewUriRequest { webview, uri, headers })
 	}
@@ -488,9 +421,7 @@ impl WebViewUriLoader {
 	/// Load the next uri to load if the lock is not engaged.
 	fn flush(self: Rc<Self>) {
 		if !self.is_locked() {
-			if let Some(WebviewUriRequest { webview, uri, headers }) =
-				self.pop()
-			{
+			if let Some(WebviewUriRequest { webview, uri, headers }) = self.pop() {
 				// we do not need to listen to failed events because those will
 				// finish the change event anyways
 				webview.connect_load_changed(move |_, event| {

@@ -45,9 +45,9 @@ async fn run(event_loop:EventLoop<()>, window:Window) {
 
 	// Load the shaders from disk
 	let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-    label: None,
-    source: wgpu::ShaderSource::Wgsl(Cow::Borrowed(
-      r#"
+		label:None,
+		source:wgpu::ShaderSource::Wgsl(Cow::Borrowed(
+			r#"
 @vertex
 fn vs_main(@builtin(vertex_index) in_vertex_index: u32) -> @builtin(position) vec4<f32> {
     let x = f32(i32(in_vertex_index) - 1);
@@ -60,38 +60,32 @@ fn fs_main() -> @location(0) vec4<f32> {
     return vec4<f32>(1.0, 0.0, 0.0, 1.0);
 }
 "#,
-    )),
-  });
+		)),
+	});
 
-	let pipeline_layout =
-		device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-			label:None,
-			bind_group_layouts:&[],
-			push_constant_ranges:&[],
-		});
+	let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+		label:None,
+		bind_group_layouts:&[],
+		push_constant_ranges:&[],
+	});
 
 	let swapchain_capabilities = surface.get_capabilities(&adapter);
 	let swapchain_format = swapchain_capabilities.formats[0];
 
-	let render_pipeline =
-		device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-			label:None,
-			layout:Some(&pipeline_layout),
-			vertex:wgpu::VertexState {
-				module:&shader,
-				entry_point:"vs_main",
-				buffers:&[],
-			},
-			fragment:Some(wgpu::FragmentState {
-				module:&shader,
-				entry_point:"fs_main",
-				targets:&[Some(swapchain_format.into())],
-			}),
-			primitive:wgpu::PrimitiveState::default(),
-			depth_stencil:None,
-			multisample:wgpu::MultisampleState::default(),
-			multiview:None,
-		});
+	let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+		label:None,
+		layout:Some(&pipeline_layout),
+		vertex:wgpu::VertexState { module:&shader, entry_point:"vs_main", buffers:&[] },
+		fragment:Some(wgpu::FragmentState {
+			module:&shader,
+			entry_point:"fs_main",
+			targets:&[Some(swapchain_format.into())],
+		}),
+		primitive:wgpu::PrimitiveState::default(),
+		depth_stencil:None,
+		multisample:wgpu::MultisampleState::default(),
+		multiview:None,
+	});
 
 	let mut config = wgpu::SurfaceConfiguration {
 		usage:wgpu::TextureUsages::RENDER_ATTACHMENT,
@@ -130,10 +124,7 @@ fn fs_main() -> @location(0) vec4<f32> {
 			evl.set_control_flow(ControlFlow::Poll);
 
 			match event {
-				Event::WindowEvent {
-					event: WindowEvent::Resized(size),
-					..
-				} => {
+				Event::WindowEvent { event: WindowEvent::Resized(size), .. } => {
 					// Reconfigure the surface with the new size
 					config.width = size.width;
 					config.height = size.height;
@@ -142,40 +133,28 @@ fn fs_main() -> @location(0) vec4<f32> {
 					// resizing
 					window.request_redraw();
 				},
-				Event::WindowEvent {
-					event: WindowEvent::RedrawRequested,
-					..
-				} => {
+				Event::WindowEvent { event: WindowEvent::RedrawRequested, .. } => {
 					let frame = surface
 						.get_current_texture()
 						.expect("Failed to acquire next swap chain texture");
-					let view = frame
-						.texture
-						.create_view(&wgpu::TextureViewDescriptor::default());
-					let mut encoder = device.create_command_encoder(
-						&wgpu::CommandEncoderDescriptor { label:None },
-					);
+					let view = frame.texture.create_view(&wgpu::TextureViewDescriptor::default());
+					let mut encoder = device
+						.create_command_encoder(&wgpu::CommandEncoderDescriptor { label:None });
 					{
-						let mut rpass = encoder.begin_render_pass(
-							&wgpu::RenderPassDescriptor {
-								label:None,
-								color_attachments:&[Some(
-									wgpu::RenderPassColorAttachment {
-										view:&view,
-										resolve_target:None,
-										ops:wgpu::Operations {
-											load:wgpu::LoadOp::Clear(
-												wgpu::Color::TRANSPARENT,
-											),
-											store:wgpu::StoreOp::Store,
-										},
-									},
-								)],
-								depth_stencil_attachment:None,
-								timestamp_writes:None,
-								occlusion_query_set:None,
-							},
-						);
+						let mut rpass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+							label:None,
+							color_attachments:&[Some(wgpu::RenderPassColorAttachment {
+								view:&view,
+								resolve_target:None,
+								ops:wgpu::Operations {
+									load:wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
+									store:wgpu::StoreOp::Store,
+								},
+							})],
+							depth_stencil_attachment:None,
+							timestamp_writes:None,
+							occlusion_query_set:None,
+						});
 						rpass.set_pipeline(&render_pipeline);
 						rpass.draw(0..3, 0..1);
 					}
@@ -183,10 +162,7 @@ fn fs_main() -> @location(0) vec4<f32> {
 					queue.submit(Some(encoder.finish()));
 					frame.present();
 				},
-				Event::WindowEvent {
-					event: WindowEvent::CloseRequested,
-					..
-				} => evl.exit(),
+				Event::WindowEvent { event: WindowEvent::CloseRequested, .. } => evl.exit(),
 				_ => {},
 			}
 
@@ -222,12 +198,10 @@ fn main() {
 
 		// we need to ignore this error here otherwise it will be catched by
 		// winit and will be make the example crash
-		winit::platform::x11::register_xlib_error_hook(Box::new(
-			|_display, error| {
-				let error = error as *mut x11_dl::xlib::XErrorEvent;
-				(unsafe { (*error).error_code }) == 170
-			},
-		));
+		winit::platform::x11::register_xlib_error_hook(Box::new(|_display, error| {
+			let error = error as *mut x11_dl::xlib::XErrorEvent;
+			(unsafe { (*error).error_code }) == 170
+		}));
 	}
 
 	let event_loop = EventLoop::new().unwrap();

@@ -80,8 +80,7 @@ fn main() -> wry::Result<()> {
 		.build()?;
 	let webview4 = create_webview_builder()
 		.with_bounds(Rect {
-			position:LogicalPosition::new(size.width / 2, size.height / 2)
-				.into(),
+			position:LogicalPosition::new(size.width / 2, size.height / 2).into(),
 			size:LogicalSize::new(size.width / 2, size.height / 2).into(),
 		})
 		.with_url("https://google.com")
@@ -91,47 +90,36 @@ fn main() -> wry::Result<()> {
 		*control_flow = ControlFlow::Wait;
 
 		match event {
-			Event::WindowEvent {
-				event: WindowEvent::Resized(size), ..
-			} => {
+			Event::WindowEvent { event: WindowEvent::Resized(size), .. } => {
 				let size = size.to_logical::<u32>(window.scale_factor());
 				webview
 					.set_bounds(Rect {
 						position:LogicalPosition::new(0, 0).into(),
-						size:LogicalSize::new(size.width / 2, size.height / 2)
-							.into(),
+						size:LogicalSize::new(size.width / 2, size.height / 2).into(),
 					})
 					.unwrap();
 				webview2
 					.set_bounds(Rect {
 						position:LogicalPosition::new(size.width / 2, 0).into(),
-						size:LogicalSize::new(size.width / 2, size.height / 2)
-							.into(),
+						size:LogicalSize::new(size.width / 2, size.height / 2).into(),
 					})
 					.unwrap();
 				webview3
 					.set_bounds(Rect {
-						position:LogicalPosition::new(0, size.height / 2)
-							.into(),
-						size:LogicalSize::new(size.width / 2, size.height / 2)
-							.into(),
+						position:LogicalPosition::new(0, size.height / 2).into(),
+						size:LogicalSize::new(size.width / 2, size.height / 2).into(),
 					})
 					.unwrap();
 				webview4
 					.set_bounds(Rect {
-						position:LogicalPosition::new(
-							size.width / 2,
-							size.height / 2,
-						)
-						.into(),
-						size:LogicalSize::new(size.width / 2, size.height / 2)
-							.into(),
+						position:LogicalPosition::new(size.width / 2, size.height / 2).into(),
+						size:LogicalSize::new(size.width / 2, size.height / 2).into(),
 					})
 					.unwrap();
 			},
-			Event::WindowEvent {
-				event: WindowEvent::CloseRequested, ..
-			} => *control_flow = ControlFlow::Exit,
+			Event::WindowEvent { event: WindowEvent::CloseRequested, .. } => {
+				*control_flow = ControlFlow::Exit
+			},
 			_ => {},
 		}
 	});

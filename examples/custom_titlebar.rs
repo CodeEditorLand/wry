@@ -54,12 +54,7 @@ impl HitTestResult {
 	}
 }
 
-fn hit_test(
-	window_size:PhysicalSize<u32>,
-	x:i32,
-	y:i32,
-	scale:f64,
-) -> HitTestResult {
+fn hit_test(window_size:PhysicalSize<u32>, x:i32, y:i32, scale:f64) -> HitTestResult {
 	const BORDERLESS_RESIZE_INSET:f64 = 5.0;
 
 	const CLIENT:isize = 0b0000;
@@ -111,10 +106,7 @@ enum UserEvent {
 
 fn main() -> wry::Result<()> {
 	let event_loop = EventLoopBuilder::<UserEvent>::with_user_event().build();
-	let window = WindowBuilder::new()
-		.with_decorations(false)
-		.build(&event_loop)
-		.unwrap();
+	let window = WindowBuilder::new().with_decorations(false).build(&event_loop).unwrap();
 
 	const HTML:&str = r#"
   <html>
@@ -282,9 +274,7 @@ fn main() -> wry::Result<()> {
 			Event::NewEvents(StartCause::Init) => {
 				println!("Wry application started!")
 			},
-			Event::WindowEvent {
-				event: WindowEvent::CloseRequested, ..
-			}
+			Event::WindowEvent { event: WindowEvent::CloseRequested, .. }
 			| Event::UserEvent(UserEvent::CloseWindow) => {
 				let _ = webview.take();
 				*control_flow = ControlFlow::Exit
@@ -293,31 +283,18 @@ fn main() -> wry::Result<()> {
 			Event::UserEvent(e) => {
 				match e {
 					UserEvent::Minimize => window.set_minimized(true),
-					UserEvent::Maximize => {
-						window.set_maximized(!window.is_maximized())
-					},
+					UserEvent::Maximize => window.set_maximized(!window.is_maximized()),
 					UserEvent::DragWindow => window.drag_window().unwrap(),
 					UserEvent::MouseDown(x, y) => {
-						let res = hit_test(
-							window.inner_size(),
-							x,
-							y,
-							window.scale_factor(),
-						);
+						let res = hit_test(window.inner_size(), x, y, window.scale_factor());
 						match res {
-							HitTestResult::Client | HitTestResult::NoWhere => {
-							},
+							HitTestResult::Client | HitTestResult::NoWhere => {},
 							_ => res.drag_resize_window(&window),
 						}
 					},
 					UserEvent::MouseMove(x, y) => {
-						hit_test(
-							window.inner_size(),
-							x,
-							y,
-							window.scale_factor(),
-						)
-						.change_cursor(&window);
+						hit_test(window.inner_size(), x, y, window.scale_factor())
+							.change_cursor(&window);
 					},
 					UserEvent::CloseWindow => { /* handled above */ },
 				}

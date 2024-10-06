@@ -11,13 +11,7 @@ use std::{
 
 use base64::{engine::general_purpose, Engine};
 use crossbeam_channel::*;
-use html5ever::{
-	interface::QualName,
-	namespace_url,
-	ns,
-	tendril::TendrilSink,
-	LocalName,
-};
+use html5ever::{interface::QualName, namespace_url, ns, tendril::TendrilSink, LocalName};
 use http::{
 	header::{HeaderValue, CONTENT_SECURITY_POLICY, CONTENT_TYPE},
 	Request,
@@ -81,9 +75,8 @@ pub(crate) static PACKAGE:OnceCell<String> = OnceCell::new();
 type EvalCallback = Box<dyn Fn(String) + Send + 'static>;
 
 pub static EVAL_ID_GENERATOR:OnceCell<AtomicI32> = OnceCell::new();
-pub static EVAL_CALLBACKS:once_cell::sync::OnceCell<
-	Mutex<HashMap<i32, EvalCallback>>,
-> = once_cell::sync::OnceCell::new();
+pub static EVAL_CALLBACKS:once_cell::sync::OnceCell<Mutex<HashMap<i32, EvalCallback>>> =
+	once_cell::sync::OnceCell::new();
 
 /// Sets up the necessary logic for wry to be able to create the webviews later.
 ///
@@ -116,28 +109,20 @@ pub unsafe fn android_setup(
 		.unwrap();
 
 	let webchrome_client = env.new_global_ref(webchrome_client).unwrap();
-	let mut main_pipe =
-		MainPipe { env, activity, webview:None, webchrome_client };
+	let mut main_pipe = MainPipe { env, activity, webview:None, webchrome_client };
 
 	looper
-		.add_fd_with_callback(
-			MAIN_PIPE[0].as_fd(),
-			FdEvent::INPUT,
-			move |fd, _event| {
-				let size = std::mem::size_of::<bool>();
-				let mut wake = false;
-				if libc::read(
-					fd.as_raw_fd(),
-					&mut wake as *mut _ as *mut _,
-					size,
-				) == size as libc::ssize_t
-				{
-					main_pipe.recv().is_ok()
-				} else {
-					false
-				}
-			},
-		)
+		.add_fd_with_callback(MAIN_PIPE[0].as_fd(), FdEvent::INPUT, move |fd, _event| {
+			let size = std::mem::size_of::<bool>();
+			let mut wake = false;
+			if libc::read(fd.as_raw_fd(), &mut wake as *mut _ as *mut _, size)
+				== size as libc::ssize_t
+			{
+				main_pipe.recv().is_ok()
+			} else {
+				false
+			}
+		})
 		.unwrap();
 }
 
@@ -187,13 +172,9 @@ impl InnerWebView {
 		let url = if let Some(mut url) = url {
 			if let Some(pos) = url.find("://") {
 				let name = &url[..pos];
-				let is_custom_protocol =
-					custom_protocols.iter().any(|(n, _)| n == name);
+				let is_custom_protocol = custom_protocols.iter().any(|(n, _)| n == name);
 				if is_custom_protocol {
-					url = url.replace(
-						&format!("{name}://"),
-						&format!("{scheme}://{name}."),
-					)
+					url = url.replace(&format!("{name}://"), &format!("{scheme}://{name}."))
 				}
 			}
 
@@ -202,21 +183,19 @@ impl InnerWebView {
 			None
 		};
 
-		MainPipe::send(WebViewMessage::CreateWebView(
-			CreateWebViewAttributes {
-				url,
-				html,
-				#[cfg(any(debug_assertions, feature = "devtools"))]
-				devtools,
-				background_color,
-				transparent,
-				headers,
-				on_webview_created,
-				autoplay,
-				user_agent,
-				initialization_scripts:initialization_scripts.clone(),
-			},
-		));
+		MainPipe::send(WebViewMessage::CreateWebView(CreateWebViewAttributes {
+			url,
+			html,
+			#[cfg(any(debug_assertions, feature = "devtools"))]
+			devtools,
+			background_color,
+			transparent,
+			headers,
+			on_webview_created,
+			autoplay,
+			user_agent,
+			initialization_scripts:initialization_scripts.clone(),
+		}));
 
 		WITH_ASSET_LOADER.get_or_init(move || with_asset_loader);
 		if let Some(domain) = asset_loader_domain {
@@ -227,10 +206,10 @@ impl InnerWebView {
 			UnsafeRequestHandler::new(Box::new(
 				move |mut request, is_document_start_script_enabled| {
 					let uri = request.uri().to_string();
-					if let Some(custom_protocol) =
-						custom_protocols.iter().find(|(name, _)| {
-							uri.starts_with(&format!("{scheme}://{}.", name))
-						}) {
+					if let Some(custom_protocol) = custom_protocols
+						.iter()
+						.find(|(name, _)| uri.starts_with(&format!("{scheme}://{}.", name)))
+					{
 						let uri_res = uri
 							.replace(
 								&format!("{scheme}://{}.", custom_protocol.0),
@@ -243,19 +222,16 @@ impl InnerWebView {
 						}
 
 						let (tx, rx) = channel();
-						let initialization_scripts =
-							initialization_scripts.clone();
-						let responder:Box<
-							dyn FnOnce(HttpResponse<Cow<'static, [u8]>>),
-						> = Box::new(move |mut response| {
-							if !is_document_start_script_enabled {
-								#[cfg(feature = "tracing")]
-								tracing::info!(
-									"`addDocumentStartJavaScript` is not \
-									 supported; injecting initialization \
-									 scripts via custom protocol handler"
-								);
-								let should_inject_scripts = response
+						let initialization_scripts = initialization_scripts.clone();
+						let responder:Box<dyn FnOnce(HttpResponse<Cow<'static, [u8]>>)> =
+							Box::new(move |mut response| {
+								if !is_document_start_script_enabled {
+									#[cfg(feature = "tracing")]
+									tracing::info!(
+										"`addDocumentStartJavaScript` is not supported; injecting \
+										 initialization scripts via custom protocol handler"
+									);
+									let should_inject_scripts = response
                     .headers()
                     .get(CONTENT_TYPE)
                     // Content-Type must begin with the media type, but is case-insensitive.
@@ -268,86 +244,56 @@ impl InnerWebView {
                     })
                     .unwrap_or_default();
 
-								if should_inject_scripts
-									&& !initialization_scripts.is_empty()
-								{
-									let mut document = kuchiki::parse_html()
-										.one(
-											String::from_utf8_lossy(
-												response.body(),
-											)
-											.into_owned(),
+									if should_inject_scripts && !initialization_scripts.is_empty() {
+										let mut document = kuchiki::parse_html().one(
+											String::from_utf8_lossy(response.body()).into_owned(),
 										);
-									let csp = response
-										.headers_mut()
-										.get_mut(CONTENT_SECURITY_POLICY);
-									let mut hashes = Vec::new();
-									with_html_head(&mut document, |head| {
-										// iterate in reverse order since we are
-										// prepending each script to the head
-										// tag
-										for script in
-											initialization_scripts.iter().rev()
-										{
-											let script_el =
-												NodeRef::new_element(
-													QualName::new(
-														None,
-														ns!(html),
-														"script".into(),
-													),
+										let csp =
+											response.headers_mut().get_mut(CONTENT_SECURITY_POLICY);
+										let mut hashes = Vec::new();
+										with_html_head(&mut document, |head| {
+											// iterate in reverse order since we are
+											// prepending each script to the head
+											// tag
+											for script in initialization_scripts.iter().rev() {
+												let script_el = NodeRef::new_element(
+													QualName::new(None, ns!(html), "script".into()),
 													None,
 												);
-											script_el.append(
-												NodeRef::new_text(script),
-											);
-											head.prepend(script_el);
-											if csp.is_some() {
-												hashes
-													.push(hash_script(script));
+												script_el.append(NodeRef::new_text(script));
+												head.prepend(script_el);
+												if csp.is_some() {
+													hashes.push(hash_script(script));
+												}
 											}
-										}
-									});
+										});
 
-									if let Some(csp) = csp {
-										let csp_string =
-											csp.to_str().unwrap().to_string();
-										let csp_string = if csp_string
-											.contains("script-src")
-										{
-											csp_string.replace(
-												"script-src",
-												&format!(
-													"script-src {}",
+										if let Some(csp) = csp {
+											let csp_string = csp.to_str().unwrap().to_string();
+											let csp_string = if csp_string.contains("script-src") {
+												csp_string.replace(
+													"script-src",
+													&format!("script-src {}", hashes.join(" ")),
+												)
+											} else {
+												format!(
+													"{} script-src {}",
+													csp_string,
 													hashes.join(" ")
-												),
-											)
-										} else {
-											format!(
-												"{} script-src {}",
-												csp_string,
-												hashes.join(" ")
-											)
-										};
-										*csp =
-											HeaderValue::from_str(&csp_string)
-												.unwrap();
+												)
+											};
+											*csp = HeaderValue::from_str(&csp_string).unwrap();
+										}
+
+										*response.body_mut() =
+											document.to_string().into_bytes().into();
 									}
-
-									*response.body_mut() = document
-										.to_string()
-										.into_bytes()
-										.into();
 								}
-							}
 
-							tx.send(response).unwrap();
-						});
+								tx.send(response).unwrap();
+							});
 
-						(custom_protocol.1)(
-							request,
-							RequestAsyncResponder { responder },
-						);
+						(custom_protocol.1)(request, RequestAsyncResponder { responder });
 						return Some(rx.recv().unwrap());
 					}
 					None
@@ -360,18 +306,15 @@ impl InnerWebView {
 		}
 
 		if let Some(i) = attributes.document_title_changed_handler {
-			TITLE_CHANGE_HANDLER
-				.get_or_init(move || UnsafeTitleHandler::new(i));
+			TITLE_CHANGE_HANDLER.get_or_init(move || UnsafeTitleHandler::new(i));
 		}
 
 		if let Some(i) = attributes.navigation_handler {
-			URL_LOADING_OVERRIDE
-				.get_or_init(move || UnsafeUrlLoadingOverride::new(i));
+			URL_LOADING_OVERRIDE.get_or_init(move || UnsafeUrlLoadingOverride::new(i));
 		}
 
 		if let Some(h) = attributes.on_page_load_handler {
-			ON_LOAD_HANDLER
-				.get_or_init(move || UnsafeOnPageLoadHandler::new(h));
+			ON_LOAD_HANDLER.get_or_init(move || UnsafeOnPageLoadHandler::new(h));
 		}
 
 		Ok(Self)
@@ -385,15 +328,10 @@ impl InnerWebView {
 		rx.recv().map_err(Into::into)
 	}
 
-	pub fn eval(
-		&self,
-		js:&str,
-		callback:Option<impl Fn(String) + Send + 'static>,
-	) -> Result<()> {
+	pub fn eval(&self, js:&str, callback:Option<impl Fn(String) + Send + 'static>) -> Result<()> {
 		MainPipe::send(WebViewMessage::Eval(
 			js.into(),
-			callback
-				.map(|c| Box::new(c) as Box<dyn Fn(String) + Send + 'static>),
+			callback.map(|c| Box::new(c) as Box<dyn Fn(String) + Send + 'static>),
 		));
 		Ok(())
 	}
@@ -419,11 +357,7 @@ impl InnerWebView {
 		Ok(())
 	}
 
-	pub fn load_url_with_headers(
-		&self,
-		url:&str,
-		headers:http::HeaderMap,
-	) -> Result<()> {
+	pub fn load_url_with_headers(&self, url:&str, headers:http::HeaderMap) -> Result<()> {
 		MainPipe::send(WebViewMessage::LoadUrl(url.to_string(), Some(headers)));
 		Ok(())
 	}
@@ -480,10 +414,8 @@ fn with_html_head<F:FnOnce(&NodeRef)>(document:&mut NodeRef, f:F) {
 	if let Ok(ref node) = document.select_first("head") {
 		f(node.as_node())
 	} else {
-		let node = NodeRef::new_element(
-			QualName::new(None, ns!(html), LocalName::from("head")),
-			None,
-		);
+		let node =
+			NodeRef::new_element(QualName::new(None, ns!(html), LocalName::from("head")), None);
 		f(&node);
 		document.prepend(node)
 	}

@@ -45,53 +45,13 @@ macro_rules! android_binding {
 			[JObject, jboolean],
 			jobject
 		);
-		android_fn!(
-			$domain,
-			$package,
-			RustWebViewClient,
-			withAssetLoader,
-			[],
-			jboolean
-		);
-		android_fn!(
-			$domain,
-			$package,
-			RustWebViewClient,
-			assetLoaderDomain,
-			[],
-			jstring
-		);
-		android_fn!(
-			$domain,
-			$package,
-			RustWebViewClient,
-			shouldOverride,
-			[JString],
-			jboolean
-		);
-		android_fn!(
-			$domain,
-			$package,
-			RustWebView,
-			shouldOverride,
-			[JString],
-			jboolean
-		);
+		android_fn!($domain, $package, RustWebViewClient, withAssetLoader, [], jboolean);
+		android_fn!($domain, $package, RustWebViewClient, assetLoaderDomain, [], jstring);
+		android_fn!($domain, $package, RustWebViewClient, shouldOverride, [JString], jboolean);
+		android_fn!($domain, $package, RustWebView, shouldOverride, [JString], jboolean);
 		android_fn!($domain, $package, RustWebView, onEval, [jint, JString]);
-		android_fn!(
-			$domain,
-			$package,
-			RustWebViewClient,
-			onPageLoading,
-			[JString]
-		);
-		android_fn!(
-			$domain,
-			$package,
-			RustWebViewClient,
-			onPageLoaded,
-			[JString]
-		);
+		android_fn!($domain, $package, RustWebViewClient, onPageLoading, [JString]);
+		android_fn!($domain, $package, RustWebViewClient, onPageLoaded, [JString]);
 		android_fn!($domain, $package, Ipc, ipc, [JString, JString]);
 		android_fn!(
 			$domain,
@@ -115,13 +75,9 @@ fn handle_request(
 
 		let mut request_builder = Request::builder();
 
-		let uri = env
-			.call_method(&request, "getUrl", "()Landroid/net/Uri;", &[])?
-			.l()?;
-		let url:JString = env
-			.call_method(&uri, "toString", "()Ljava/lang/String;", &[])?
-			.l()?
-			.into();
+		let uri = env.call_method(&request, "getUrl", "()Landroid/net/Uri;", &[])?.l()?;
+		let url:JString =
+			env.call_method(&uri, "toString", "()Ljava/lang/String;", &[])?.l()?.into();
 		let url = env.get_string(&url)?.to_string_lossy().to_string();
 
 		#[cfg(feature = "tracing")]
@@ -133,18 +89,11 @@ fn handle_request(
 			.call_method(&request, "getMethod", "()Ljava/lang/String;", &[])?
 			.l()
 			.map(JString::from)?;
-		request_builder = request_builder.method(
-			env.get_string(&method)?.to_string_lossy().to_string().as_str(),
-		);
+		request_builder =
+			request_builder.method(env.get_string(&method)?.to_string_lossy().to_string().as_str());
 
-		let request_headers = env
-			.call_method(
-				request,
-				"getRequestHeaders",
-				"()Ljava/util/Map;",
-				&[],
-			)?
-			.l()?;
+		let request_headers =
+			env.call_method(request, "getRequestHeaders", "()Ljava/util/Map;", &[])?.l()?;
 		let request_headers = JMap::from_env(env, &request_headers)?;
 		let mut iter = request_headers.iter(env)?;
 		while let Some((header, value)) = iter.next(env)? {
@@ -171,12 +120,8 @@ fn handle_request(
 
 		let response = {
 			#[cfg(feature = "tracing")]
-			let _span = tracing::info_span!("wry::custom_protocol::call_handler")
-				.entered();
-			(handler.handler)(
-				final_request,
-				is_document_start_script_enabled != 0,
-			)
+			let _span = tracing::info_span!("wry::custom_protocol::call_handler").entered();
+			(handler.handler)(final_request, is_document_start_script_enabled != 0)
 		};
 		if let Some(response) = response {
 			let status = response.status();
@@ -197,31 +142,30 @@ fn handle_request(
 			}
 
 			let reason_phrase = status.canonical_reason().unwrap_or("OK");
-			let (mime_type, encoding) = if let Some(content_type) =
-				response.headers().get(CONTENT_TYPE)
-			{
-				let content_type = content_type.to_str().unwrap().trim();
-				let mut s = content_type.split(';');
-				let mime_type = s.next().unwrap().trim();
-				let mut encoding = None;
-				for token in s {
-					let token = token.trim();
-					if token.starts_with("charset=") {
-						encoding.replace(token.split('=').nth(1).unwrap());
-						break;
+			let (mime_type, encoding) =
+				if let Some(content_type) = response.headers().get(CONTENT_TYPE) {
+					let content_type = content_type.to_str().unwrap().trim();
+					let mut s = content_type.split(';');
+					let mime_type = s.next().unwrap().trim();
+					let mut encoding = None;
+					for token in s {
+						let token = token.trim();
+						if token.starts_with("charset=") {
+							encoding.replace(token.split('=').nth(1).unwrap());
+							break;
+						}
 					}
-				}
-				(
-					env.new_string(mime_type)?,
-					if let Some(encoding) = encoding {
-						env.new_string(encoding)?
-					} else {
-						JString::default()
-					},
-				)
-			} else {
-				(JString::default(), JString::default())
-			};
+					(
+						env.new_string(mime_type)?,
+						if let Some(encoding) = encoding {
+							env.new_string(encoding)?
+						} else {
+							JString::default()
+						},
+					)
+				} else {
+					(JString::default(), JString::default())
+				};
 
 			let headers = response.headers();
 			let obj = env.new_object("java/util/HashMap", "()V", &[])?;
@@ -235,8 +179,7 @@ fn handle_request(
 						continue;
 					}
 					let key = env.new_string(name)?;
-					let value =
-						env.new_string(value.to_str().unwrap_or_default())?;
+					let value = env.new_string(value.to_str().unwrap_or_default())?;
 					headers_map.put(env, &key, &value)?;
 				}
 				headers_map
@@ -244,14 +187,10 @@ fn handle_request(
 
 			let bytes = response.body();
 
-			let byte_array_input_stream =
-				env.find_class("java/io/ByteArrayInputStream")?;
+			let byte_array_input_stream = env.find_class("java/io/ByteArrayInputStream")?;
 			let byte_array = env.byte_array_from_slice(bytes)?;
-			let stream = env.new_object(
-				byte_array_input_stream,
-				"([B)V",
-				&[(&byte_array).into()],
-			)?;
+			let stream =
+				env.new_object(byte_array_input_stream, "([B)V", &[(&byte_array).into()])?;
 
 			let reason_phrase = env.new_string(reason_phrase)?;
 
@@ -259,8 +198,8 @@ fn handle_request(
 				env.find_class("android/webkit/WebResourceResponse")?;
 			let web_resource_response = env.new_object(
 				web_resource_response_class,
-				"(Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;\
-				 Ljava/util/Map;Ljava/io/InputStream;)V",
+				"(Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;Ljava/util/Map;Ljava/io/\
+				 InputStream;)V",
 				&[
 					(&mime_type).into(),
 					(&encoding).into(),
@@ -296,11 +235,7 @@ pub unsafe fn handleRequest(
 }
 
 #[allow(non_snake_case)]
-pub unsafe fn shouldOverride(
-	mut env:JNIEnv,
-	_:JClass,
-	url:JString,
-) -> jboolean {
+pub unsafe fn shouldOverride(mut env:JNIEnv, _:JClass, url:JString) -> jboolean {
 	match env.get_string(&url) {
 		Ok(url) => {
 			let url = url.to_string_lossy().to_string();
@@ -326,11 +261,7 @@ pub unsafe fn shouldOverride(
 pub unsafe fn onEval(mut env:JNIEnv, _:JClass, id:jint, result:JString) {
 	match env.get_string(&result) {
 		Ok(result) => {
-			if let Some(cb) = EVAL_CALLBACKS
-				.get_or_init(Default::default)
-				.lock()
-				.unwrap()
-				.get(&id)
+			if let Some(cb) = EVAL_CALLBACKS.get_or_init(Default::default).lock().unwrap().get(&id)
 			{
 				cb(result.into());
 			}
@@ -362,12 +293,7 @@ pub unsafe fn ipc(mut env:JNIEnv, _:JClass, url:JString, body:JString) {
 }
 
 #[allow(non_snake_case)]
-pub unsafe fn handleReceivedTitle(
-	mut env:JNIEnv,
-	_:JClass,
-	_webview:JObject,
-	title:JString,
-) {
+pub unsafe fn handleReceivedTitle(mut env:JNIEnv, _:JClass, _webview:JObject, title:JString) {
 	match env.get_string(&title) {
 		Ok(title) => {
 			let title = title.to_string_lossy().to_string();

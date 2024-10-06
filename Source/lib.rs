@@ -20,10 +20,7 @@
 //! let event_loop = EventLoop::new().unwrap();
 //! let window = WindowBuilder::new().build(&event_loop).unwrap();
 //!
-//! let webview = WebViewBuilder::new(&window)
-//! 	.with_url("https://tauri.app")
-//! 	.build()
-//! 	.unwrap();
+//! let webview = WebViewBuilder::new(&window).with_url("https://tauri.app").build().unwrap();
 //! ```
 //!
 //! If you also want to support Wayland too, then we recommend you use
@@ -342,8 +339,8 @@ pub struct WebViewAttributes {
 	///
 	/// - **macOS / iOS**: Not implemented.
 	/// - **Windows**:
-	///   - On Windows 7, transparency is not supported and the alpha value
-	///     will be ignored.
+	///   - On Windows 7, transparency is not supported and the alpha value will
+	///     be ignored.
 	///   - On Windows higher than 7: translucent colors are not supported so
 	///     any alpha value other than `0` will be replaced by `255`
 	pub background_color:Option<RGBA>,
@@ -417,8 +414,7 @@ pub struct WebViewAttributes {
 	/// - iOS: To get the path of your assets, you can call [`CFBundle::resources_path`](https://docs.rs/core-foundation/latest/core_foundation/bundle/struct.CFBundle.html#method.resources_path).
 	///   So url like `wry://assets/index.html` could get the html file in
 	///   assets directory.
-	pub custom_protocols:
-		HashMap<String, Box<dyn Fn(Request<Vec<u8>>, RequestAsyncResponder)>>,
+	pub custom_protocols:HashMap<String, Box<dyn Fn(Request<Vec<u8>>, RequestAsyncResponder)>>,
 
 	/// The IPC handler to receive the message from Javascript on webview
 	/// using `window.ipc.postMessage("insert_message_here")` to host Rust
@@ -455,8 +451,7 @@ pub struct WebViewAttributes {
 	/// downloaded to. The latter parameter can be used to set the download
 	/// location by assigning a new path to it, the assigned path _must_ be
 	/// absolute. The closure returns a `bool` to allow or deny the download.
-	pub download_started_handler:
-		Option<Box<dyn FnMut(String, &mut PathBuf) -> bool>>,
+	pub download_started_handler:Option<Box<dyn FnMut(String, &mut PathBuf) -> bool>>,
 
 	/// A download completion handler to manage downloads that have finished.
 	///
@@ -472,11 +467,10 @@ pub struct WebViewAttributes {
 	///
 	/// ## Platform-specific:
 	///
-	/// - **macOS**: The second parameter indicating the path the file was
-	///   saved to, is always empty,
+	/// - **macOS**: The second parameter indicating the path the file was saved
+	///   to, is always empty,
 	/// due to API limitations.
-	pub download_completed_handler:
-		Option<Rc<dyn Fn(String, Option<PathBuf>, bool) + 'static>>,
+	pub download_completed_handler:Option<Rc<dyn Fn(String, Option<PathBuf>, bool) + 'static>>,
 
 	/// A new window handler to decide if incoming url is allowed to open in a
 	/// new window.
@@ -502,8 +496,8 @@ pub struct WebViewAttributes {
 	///
 	/// ## Platform-specific
 	///
-	/// - macOS: This will call private functions on **macOS**. It is enabled
-	///   in **debug** builds,
+	/// - macOS: This will call private functions on **macOS**. It is enabled in
+	///   **debug** builds,
 	/// but requires `devtools` feature flag to actually enable it in
 	/// **release** builds.
 	/// - Android: Open `chrome://inspect/#devices` in Chrome to get the
@@ -557,8 +551,8 @@ pub struct WebViewAttributes {
 	/// Set a proxy configuration for the webview. Supports HTTP CONNECT and
 	/// SOCKSv5 proxies
 	///
-	/// - **macOS**: Requires macOS 14.0+ and the `mac-proxy` feature flag to
-	///   be enabled.
+	/// - **macOS**: Requires macOS 14.0+ and the `mac-proxy` feature flag to be
+	///   enabled.
 	/// - **Android / iOS:** Not supported.
 	pub proxy_config:Option<ProxyConfig>,
 
@@ -715,10 +709,7 @@ impl<'a> WebViewBuilder<'a> {
 	/// ## Platform-specific:
 	///
 	/// - **Android / iOS:** Unsupported.
-	pub fn with_back_forward_navigation_gestures(
-		mut self,
-		gesture:bool,
-	) -> Self {
+	pub fn with_back_forward_navigation_gestures(mut self, gesture:bool) -> Self {
 		self.attrs.back_forward_navigation_gestures = gesture;
 		self
 	}
@@ -865,11 +856,7 @@ impl<'a> WebViewBuilder<'a> {
 	///   });
 	/// ```
 	#[cfg(feature = "protocol")]
-	pub fn with_asynchronous_custom_protocol<F>(
-		mut self,
-		name:String,
-		handler:F,
-	) -> Self
+	pub fn with_asynchronous_custom_protocol<F>(mut self, name:String, handler:F) -> Self
 	where
 		F: Fn(Request<Vec<u8>>, RequestAsyncResponder) + 'static, {
 		self.attrs.custom_protocols.insert(name, Box::new(handler));
@@ -917,11 +904,7 @@ impl<'a> WebViewBuilder<'a> {
 	///
 	/// Data URLs are not supported, use [`html`](Self::with_html) option
 	/// instead.
-	pub fn with_url_and_headers(
-		mut self,
-		url:impl Into<String>,
-		headers:http::HeaderMap,
-	) -> Self {
+	pub fn with_url_and_headers(mut self, url:impl Into<String>, headers:http::HeaderMap) -> Self {
 		self.attrs.url = Some(url.into());
 		self.attrs.headers = Some(headers);
 		self
@@ -1023,10 +1006,7 @@ impl<'a> WebViewBuilder<'a> {
 	/// The closure take a `String` parameter as url and returns a `bool` to
 	/// determine whether the navigation should happen. `true` allows to
 	/// navigate and `false` does not.
-	pub fn with_navigation_handler(
-		mut self,
-		callback:impl Fn(String) -> bool + 'static,
-	) -> Self {
+	pub fn with_navigation_handler(mut self, callback:impl Fn(String) -> bool + 'static) -> Self {
 		self.attrs.navigation_handler = Some(Box::new(callback));
 		self
 	}
@@ -1069,8 +1049,7 @@ impl<'a> WebViewBuilder<'a> {
 		mut self,
 		download_completed_handler:impl Fn(String, Option<PathBuf>, bool) + 'static,
 	) -> Self {
-		self.attrs.download_completed_handler =
-			Some(Rc::new(download_completed_handler));
+		self.attrs.download_completed_handler = Some(Rc::new(download_completed_handler));
 		self
 	}
 
@@ -1190,22 +1169,12 @@ impl<'a> WebViewBuilder<'a> {
 					self.web_context,
 				)?
 			} else {
-				InnerWebView::new(
-					window,
-					self.attrs,
-					self.platform_specific,
-					self.web_context,
-				)?
+				InnerWebView::new(window, self.attrs, self.platform_specific, self.web_context)?
 			}
 		} else {
 			#[cfg(gtk)]
 			if let Some(widget) = self.gtk_widget {
-				InnerWebView::new_gtk(
-					widget,
-					self.attrs,
-					self.platform_specific,
-					self.web_context,
-				)?
+				InnerWebView::new_gtk(widget, self.attrs, self.platform_specific, self.web_context)?
 			} else {
 				unreachable!()
 			}
@@ -1288,10 +1257,7 @@ pub trait WebViewBuilderExtWindows {
 	/// and `--proxy-server=<scheme>://<host>:<port>` if a proxy is set.
 	/// so if you use this method, you have to add these arguments yourself if
 	/// you want to keep the same behavior.
-	fn with_additional_browser_args<S:Into<String>>(
-		self,
-		additional_args:S,
-	) -> Self;
+	fn with_additional_browser_args<S:Into<String>>(self, additional_args:S) -> Self;
 
 	/// Determines whether browser-specific accelerator keys are enabled. When
 	/// this setting is set to `false`, it disables all accelerator keys that
@@ -1346,12 +1312,8 @@ pub trait WebViewBuilderExtWindows {
 
 #[cfg(windows)]
 impl WebViewBuilderExtWindows for WebViewBuilder<'_> {
-	fn with_additional_browser_args<S:Into<String>>(
-		mut self,
-		additional_args:S,
-	) -> Self {
-		self.platform_specific.additional_browser_args =
-			Some(additional_args.into());
+	fn with_additional_browser_args<S:Into<String>>(mut self, additional_args:S) -> Self {
+		self.platform_specific.additional_browser_args = Some(additional_args.into());
 		self
 	}
 
@@ -1384,14 +1346,8 @@ impl WebViewBuilderExtWindows for WebViewBuilder<'_> {
 #[cfg(target_os = "android")]
 #[derive(Default)]
 pub(crate) struct PlatformSpecificWebViewAttributes {
-	on_webview_created: Option<
-		Box<
-			dyn Fn(
-					prelude::Context,
-				) -> std::result::Result<(), jni::errors::Error>
-				+ Send,
-		>,
-	>,
+	on_webview_created:
+		Option<Box<dyn Fn(prelude::Context) -> std::result::Result<(), jni::errors::Error> + Send>>,
 	with_asset_loader:bool,
 	asset_loader_domain:Option<String>,
 	https_scheme:bool,
@@ -1400,9 +1356,7 @@ pub(crate) struct PlatformSpecificWebViewAttributes {
 #[cfg(target_os = "android")]
 pub trait WebViewBuilderExtAndroid {
 	fn on_webview_created<
-		F:Fn(
-				prelude::Context<'_, '_>,
-			) -> std::result::Result<(), jni::errors::Error>
+		F:Fn(prelude::Context<'_, '_>) -> std::result::Result<(), jni::errors::Error>
 			+ Send
 			+ 'static,
 	>(
@@ -1435,9 +1389,7 @@ pub trait WebViewBuilderExtAndroid {
 #[cfg(target_os = "android")]
 impl WebViewBuilderExtAndroid for WebViewBuilder<'_> {
 	fn on_webview_created<
-		F:Fn(
-				prelude::Context<'_, '_>,
-			) -> std::result::Result<(), jni::errors::Error>
+		F:Fn(prelude::Context<'_, '_>) -> std::result::Result<(), jni::errors::Error>
 			+ Send
 			+ 'static,
 	>(
@@ -1460,8 +1412,7 @@ impl WebViewBuilderExtAndroid for WebViewBuilder<'_> {
 			}),
 		);
 		self.platform_specific.with_asset_loader = true;
-		self.platform_specific.asset_loader_domain =
-			Some(format!("{}.assets", protocol));
+		self.platform_specific.asset_loader_domain = Some(format!("{}.assets", protocol));
 		self
 	}
 
@@ -1560,9 +1511,7 @@ impl WebView {
 	///
 	/// - Panics if the provided handle was not supported or invalid.
 	/// - Panics on Linux, if [`gtk::init`] was not called in this thread.
-	pub fn new(window:&impl HasWindowHandle) -> Result<Self> {
-		WebViewBuilder::new(window).build()
-	}
+	pub fn new(window:&impl HasWindowHandle) -> Result<Self> { WebViewBuilder::new(window).build() }
 
 	/// Create [`WebViewBuilder`] as a child window inside the provided
 	/// [`HasWindowHandle`].
@@ -1654,9 +1603,7 @@ impl WebView {
 	/// - **Android**: Not supported.
 	/// - **macOS**: available on macOS 11+ only.
 	/// - **iOS**: available on iOS 14+ only.
-	pub fn zoom(&self, scale_factor:f64) -> Result<()> {
-		self.webview.zoom(scale_factor)
-	}
+	pub fn zoom(&self, scale_factor:f64) -> Result<()> { self.webview.zoom(scale_factor) }
 
 	/// Specify the webview background color.
 	///
@@ -1675,28 +1622,18 @@ impl WebView {
 	}
 
 	/// Navigate to the specified url
-	pub fn load_url(&self, url:&str) -> Result<()> {
-		self.webview.load_url(url)
-	}
+	pub fn load_url(&self, url:&str) -> Result<()> { self.webview.load_url(url) }
 
 	/// Navigate to the specified url using the specified headers
-	pub fn load_url_with_headers(
-		&self,
-		url:&str,
-		headers:http::HeaderMap,
-	) -> Result<()> {
+	pub fn load_url_with_headers(&self, url:&str, headers:http::HeaderMap) -> Result<()> {
 		self.webview.load_url_with_headers(url, headers)
 	}
 
 	/// Load html content into the webview
-	pub fn load_html(&self, html:&str) -> Result<()> {
-		self.webview.load_html(html)
-	}
+	pub fn load_html(&self, html:&str) -> Result<()> { self.webview.load_html(html) }
 
 	/// Clear all browsing data
-	pub fn clear_all_browsing_data(&self) -> Result<()> {
-		self.webview.clear_all_browsing_data()
-	}
+	pub fn clear_all_browsing_data(&self) -> Result<()> { self.webview.clear_all_browsing_data() }
 
 	pub fn bounds(&self) -> Result<Rect> { self.webview.bounds() }
 
@@ -1704,14 +1641,10 @@ impl WebView {
 	///
 	/// This is only effective if the webview was created as a child
 	/// or created using [`WebViewBuilderExtUnix::new_gtk`] with [`gtk::Fixed`].
-	pub fn set_bounds(&self, bounds:Rect) -> Result<()> {
-		self.webview.set_bounds(bounds)
-	}
+	pub fn set_bounds(&self, bounds:Rect) -> Result<()> { self.webview.set_bounds(bounds) }
 
 	/// Shows or hides the webview.
-	pub fn set_visible(&self, visible:bool) -> Result<()> {
-		self.webview.set_visible(visible)
-	}
+	pub fn set_visible(&self, visible:bool) -> Result<()> { self.webview.set_visible(visible) }
 
 	/// Try moving focus to the webview.
 	pub fn focus(&self) -> Result<()> { self.webview.focus() }
@@ -1802,13 +1735,9 @@ pub trait WebViewExtWindows {
 
 #[cfg(target_os = "windows")]
 impl WebViewExtWindows for WebView {
-	fn controller(&self) -> ICoreWebView2Controller {
-		self.webview.controller.clone()
-	}
+	fn controller(&self) -> ICoreWebView2Controller { self.webview.controller.clone() }
 
-	fn set_theme(&self, theme:Theme) -> Result<()> {
-		self.webview.set_theme(theme)
-	}
+	fn set_theme(&self, theme:Theme) -> Result<()> { self.webview.set_theme(theme) }
 
 	fn set_memory_usage_level(&self, level:MemoryUsageLevel) -> Result<()> {
 		self.webview.set_memory_usage_level(level)
@@ -1891,15 +1820,12 @@ impl WebViewExtMacOS for WebView {
 
 	fn ns_window(&self) -> cocoa::base::id {
 		unsafe {
-			let ns_window:cocoa::base::id =
-				msg_send![self.webview.webview, window];
+			let ns_window:cocoa::base::id = msg_send![self.webview.webview, window];
 			ns_window
 		}
 	}
 
-	fn reparent(&self, window:cocoa::base::id) -> Result<()> {
-		self.webview.reparent(window)
-	}
+	fn reparent(&self, window:cocoa::base::id) -> Result<()> { self.webview.reparent(window) }
 
 	fn print_with_options(&self, options:&PrintOptions) -> Result<()> {
 		self.webview.print_with_options(options)

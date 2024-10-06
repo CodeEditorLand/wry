@@ -12,14 +12,8 @@ use objc::{
 use super::NSString;
 
 pub unsafe fn setup(decl:&mut ClassDecl) {
-	decl.add_method(
-		sel!(otherMouseDown:),
-		other_mouse_down as extern fn(&mut Object, Sel, id),
-	);
-	decl.add_method(
-		sel!(otherMouseUp:),
-		other_mouse_up as extern fn(&mut Object, Sel, id),
-	);
+	decl.add_method(sel!(otherMouseDown:), other_mouse_down as extern fn(&mut Object, Sel, id));
+	decl.add_method(sel!(otherMouseUp:), other_mouse_up as extern fn(&mut Object, Sel, id));
 }
 
 extern fn other_mouse_down(this:&mut Object, _sel:Sel, event:id) {
@@ -71,12 +65,7 @@ extern fn other_mouse_up(this:&mut Object, _sel:Sel, event:id) {
 	}
 }
 
-unsafe fn create_js_mouse_event(
-	view:id,
-	event:id,
-	down:bool,
-	back_button:bool,
-) -> String {
+unsafe fn create_js_mouse_event(view:id, event:id, down:bool, back_button:bool) -> String {
 	let event_name = if down { "mousedown" } else { "mouseup" };
 	// js equivalent https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/button
 	let button = if back_button { 3 } else { 4 };

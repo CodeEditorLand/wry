@@ -86,9 +86,7 @@ struct X11Data {
 
 impl Drop for X11Data {
 	fn drop(&mut self) {
-		unsafe {
-			(self.xlib.XDestroyWindow)(self.x11_display as _, self.x11_window)
-		};
+		unsafe { (self.xlib.XDestroyWindow)(self.x11_display as _, self.x11_window) };
 		self.gtk_window.close();
 	}
 }
@@ -140,23 +138,14 @@ impl InnerWebView {
 
 		let xlib = Xlib::open()?;
 
-		let gdk_display =
-			gdk::Display::default().ok_or(crate::Error::X11DisplayNotFound)?;
+		let gdk_display = gdk::Display::default().ok_or(crate::Error::X11DisplayNotFound)?;
 		let gx11_display:&X11Display = gdk_display.downcast_ref().unwrap();
 		let raw = gx11_display.as_ptr();
 
-		let x11_display =
-			unsafe { gdkx11::ffi::gdk_x11_display_get_xdisplay(raw) };
+		let x11_display = unsafe { gdkx11::ffi::gdk_x11_display_get_xdisplay(raw) };
 
 		let x11_window = match is_child {
-			true => {
-				Self::create_container_x11_window(
-					&xlib,
-					x11_display as _,
-					parent,
-					&attributes,
-				)
-			},
+			true => Self::create_container_x11_window(&xlib, x11_display as _, parent, &attributes),
 			false => parent,
 		};
 
@@ -208,11 +197,8 @@ impl InnerWebView {
       // and we need to use 1 not 0 here otherwise xlib will crash
       .unwrap_or((1, 1));
 
-		let window = unsafe {
-			(xlib.XCreateSimpleWindow)(
-				display, parent, x, y, width, height, 0, 0, 0,
-			)
-		};
+		let window =
+			unsafe { (xlib.XCreateSimpleWindow)(display, parent, x, y, width, height, 0, 0, 0) };
 
 		if attributes.visible {
 			unsafe { (xlib.XMapWindow)(display, window) };
@@ -226,15 +212,12 @@ impl InnerWebView {
 		x11_window:c_ulong,
 	) -> (gtk::Window, gtk::Box) {
 		// Gdk.Window
-		let gdk_window =
-			unsafe { gdk_x11_window_foreign_new_for_display(raw, x11_window) };
+		let gdk_window = unsafe { gdk_x11_window_foreign_new_for_display(raw, x11_window) };
 		let gdk_window = unsafe { gdk::Window::from_glib_full(gdk_window) };
 
 		// Gtk.Window
 		let window = gtk::Window::new(gtk::WindowType::Toplevel);
-		window.connect_realize(
-			glib::clone!(@weak gdk_window as wd => move |w| w.set_window(wd)),
-		);
+		window.connect_realize(glib::clone!(@weak gdk_window as wd => move |w| w.set_window(wd)));
 		window.set_has_window(true);
 		window.realize();
 
@@ -276,15 +259,10 @@ impl InnerWebView {
 					format!("socks5://{}:{}", endpoint.host, endpoint.port)
 				},
 			};
-			if let Some(website_data_manager) =
-				web_context.context().website_data_manager()
-			{
-				let mut settings =
-					NetworkProxySettings::new(Some(proxy_uri.as_str()), &[]);
-				website_data_manager.set_network_proxy_settings(
-					NetworkProxyMode::Custom,
-					Some(&mut settings),
-				);
+			if let Some(website_data_manager) = web_context.context().website_data_manager() {
+				let mut settings = NetworkProxySettings::new(Some(proxy_uri.as_str()), &[]);
+				website_data_manager
+					.set_network_proxy_settings(NetworkProxyMode::Custom, Some(&mut settings));
 			}
 		}
 
@@ -321,8 +299,7 @@ impl InnerWebView {
 
 		web_context.register_automation(webview.clone());
 
-		let is_in_fixed_parent =
-			Self::add_to_container(&webview, container, &attributes);
+		let is_in_fixed_parent = Self::add_to_container(&webview, container, &attributes);
 
 		#[cfg(any(debug_assertions, feature = "devtools"))]
 		let is_inspector_open = Self::attach_inspector_handlers(&webview);
@@ -340,9 +317,8 @@ impl InnerWebView {
 
 		// Initialize message handler
 		w.init(
-			"Object.defineProperty(window, 'ipc', { value: Object.freeze({ \
-			 postMessage: function(x) { \
-			 window.webkit.messageHandlers['ipc'].postMessage(x) } }) })",
+			"Object.defineProperty(window, 'ipc', { value: Object.freeze({ postMessage: \
+			 function(x) { window.webkit.messageHandlers['ipc'].postMessage(x) } }) })",
 		)?;
 
 		// Initialize scripts
@@ -371,11 +347,7 @@ impl InnerWebView {
 
 		// Navigation
 		if let Some(url) = attributes.url {
-			web_context.queue_load_uri(
-				w.webview.clone(),
-				url,
-				attributes.headers,
-			);
+			web_context.queue_load_uri(w.webview.clone(), url, attributes.headers);
 			web_context.flush_queue_loader();
 		} else if let Some(html) = attributes.html {
 			w.webview.load_html(&html, None);
@@ -392,10 +364,7 @@ impl InnerWebView {
 		Ok(w)
 	}
 
-	fn create_webview(
-		web_context:&WebContext,
-		attributes:&WebViewAttributes,
-	) -> WebView {
+	fn create_webview(web_context:&WebContext, attributes:&WebViewAttributes) -> WebView {
 		let mut builder = WebView::builder()
 			.user_content_manager(&UserContentManager::new())
 			.web_context(web_context.context())
@@ -403,9 +372,7 @@ impl InnerWebView {
 
 		if attributes.autoplay {
 			builder = builder.website_policies(
-				&WebsitePolicies::builder()
-					.autoplay(AutoplayPolicy::Allow)
-					.build(),
+				&WebsitePolicies::builder().autoplay(AutoplayPolicy::Allow).build(),
 			);
 		}
 
@@ -466,16 +433,13 @@ impl InnerWebView {
 			attributes.document_title_changed_handler.take()
 		{
 			webview.connect_title_notify(move |webview| {
-				let new_title =
-					webview.title().map(|t| t.to_string()).unwrap_or_default();
+				let new_title = webview.title().map(|t| t.to_string()).unwrap_or_default();
 				document_title_changed_handler(new_title)
 			});
 		}
 
 		// Page load handler
-		if let Some(on_page_load_handler) =
-			attributes.on_page_load_handler.take()
-		{
+		if let Some(on_page_load_handler) = attributes.on_page_load_handler.take() {
 			webview.connect_load_changed(move |webview, load_event| {
 				match load_event {
 					LoadEvent::Committed => {
@@ -496,57 +460,43 @@ impl InnerWebView {
 		}
 
 		// Navigation handler && New window handler
-		if attributes.navigation_handler.is_some()
-			|| attributes.new_window_req_handler.is_some()
-		{
-			let new_window_req_handler =
-				attributes.new_window_req_handler.take();
+		if attributes.navigation_handler.is_some() || attributes.new_window_req_handler.is_some() {
+			let new_window_req_handler = attributes.new_window_req_handler.take();
 			let navigation_handler = attributes.navigation_handler.take();
 
-			webview.connect_decide_policy(
-				move |_webview, policy_decision, policy_type| {
-					let handler = match policy_type {
-						PolicyDecisionType::NavigationAction => {
-							&navigation_handler
-						},
-						PolicyDecisionType::NewWindowAction => {
-							&new_window_req_handler
-						},
-						_ => return false,
-					};
+			webview.connect_decide_policy(move |_webview, policy_decision, policy_type| {
+				let handler = match policy_type {
+					PolicyDecisionType::NavigationAction => &navigation_handler,
+					PolicyDecisionType::NewWindowAction => &new_window_req_handler,
+					_ => return false,
+				};
 
-					if let Some(handler) = handler {
-						if let Some(policy) = policy_decision
-							.dynamic_cast_ref::<NavigationPolicyDecision>(
-						) {
-							if let Some(nav_action) = policy.navigation_action()
-							{
-								if let Some(uri_req) = nav_action.request() {
-									if let Some(uri) = uri_req.uri() {
-										let allow = handler(uri.to_string());
-										let pointer = policy_decision.as_ptr();
-										unsafe {
-											if allow {
-												webkit_policy_decision_use(
-													pointer,
-												)
-											} else {
-												webkit_policy_decision_ignore(
-													pointer,
-												)
-											}
+				if let Some(handler) = handler {
+					if let Some(policy) =
+						policy_decision.dynamic_cast_ref::<NavigationPolicyDecision>()
+					{
+						if let Some(nav_action) = policy.navigation_action() {
+							if let Some(uri_req) = nav_action.request() {
+								if let Some(uri) = uri_req.uri() {
+									let allow = handler(uri.to_string());
+									let pointer = policy_decision.as_ptr();
+									unsafe {
+										if allow {
+											webkit_policy_decision_use(pointer)
+										} else {
+											webkit_policy_decision_ignore(pointer)
 										}
-
-										return true;
 									}
+
+									return true;
 								}
 							}
 						}
 					}
+				}
 
-					false
-				},
-			);
+				false
+			});
 		}
 
 		// Download handler
@@ -560,11 +510,7 @@ impl InnerWebView {
 		}
 	}
 
-	fn add_to_container<W>(
-		webview:&WebView,
-		container:&W,
-		attributes:&WebViewAttributes,
-	) -> bool
+	fn add_to_container<W>(webview:&WebView, container:&W, attributes:&WebViewAttributes) -> bool
 	where
 		W: IsA<gtk::Container>, {
 		let mut is_in_fixed_parent = false;
@@ -590,10 +536,7 @@ impl InnerWebView {
 
 			webview.set_size_request(width, height);
 
-			container
-				.dynamic_cast_ref::<gtk::Fixed>()
-				.unwrap()
-				.put(webview, x, y);
+			container.dynamic_cast_ref::<gtk::Fixed>().unwrap().put(webview, x, y);
 
 			is_in_fixed_parent = true;
 		} else {
@@ -654,18 +597,14 @@ impl InnerWebView {
 		Ok(())
 	}
 
-	pub fn url(&self) -> Result<String> {
-		Ok(self.webview.uri().unwrap_or_default().to_string())
-	}
+	pub fn url(&self) -> Result<String> { Ok(self.webview.uri().unwrap_or_default().to_string()) }
 
 	pub fn eval(
 		&self,
 		js:&str,
 		callback:Option<impl FnOnce(String) + Send + 'static>,
 	) -> Result<()> {
-		if let Some(pending_scripts) =
-			&mut *self.pending_scripts.lock().unwrap()
-		{
+		if let Some(pending_scripts) = &mut *self.pending_scripts.lock().unwrap() {
 			pending_scripts.push(js.into());
 		} else {
 			let cancellable:Option<&Cancellable> = None;
@@ -726,9 +665,7 @@ impl InnerWebView {
 	}
 
 	#[cfg(any(debug_assertions, feature = "devtools"))]
-	pub fn is_devtools_open(&self) -> bool {
-		self.is_inspector_open.load(Ordering::Relaxed)
-	}
+	pub fn is_devtools_open(&self) -> bool { self.is_inspector_open.load(Ordering::Relaxed) }
 
 	pub fn zoom(&self, scale_factor:f64) -> Result<()> {
 		self.webview.set_zoom_level(scale_factor);
@@ -750,19 +687,12 @@ impl InnerWebView {
 		Ok(())
 	}
 
-	pub fn load_url_with_headers(
-		&self,
-		url:&str,
-		headers:http::HeaderMap,
-	) -> Result<()> {
+	pub fn load_url_with_headers(&self, url:&str, headers:http::HeaderMap) -> Result<()> {
 		let req = URIRequest::builder().uri(url).build();
 
 		if let Some(ref mut req_headers) = req.http_headers() {
 			for (header, value) in headers.iter() {
-				req_headers.append(
-					header.to_string().as_str(),
-					value.to_str().unwrap_or_default(),
-				);
+				req_headers.append(header.to_string().as_str(), value.to_str().unwrap_or_default());
 			}
 		}
 
@@ -797,8 +727,7 @@ impl InnerWebView {
 		if let Some(x11_data) = &self.x11 {
 			unsafe {
 				let attributes:XWindowAttributes = std::mem::zeroed();
-				let mut attributes =
-					std::mem::MaybeUninit::new(attributes).assume_init();
+				let mut attributes = std::mem::MaybeUninit::new(attributes).assume_init();
 
 				let ok = (x11_data.xlib.XGetWindowAttributes)(
 					x11_data.x11_display as _,
@@ -807,11 +736,8 @@ impl InnerWebView {
 				);
 
 				if ok != 0 {
-					bounds.position =
-						LogicalPosition::new(attributes.x, attributes.y).into();
-					bounds.size =
-						LogicalSize::new(attributes.width, attributes.height)
-							.into();
+					bounds.position = LogicalPosition::new(attributes.x, attributes.y).into();
+					bounds.size = LogicalSize::new(attributes.width, attributes.height).into();
 				}
 			}
 		} else {
@@ -824,8 +750,7 @@ impl InnerWebView {
 
 	pub fn set_bounds(&self, bounds:Rect) -> Result<()> {
 		let scale_factor = self.webview.scale_factor() as f64;
-		let (width, height) =
-			bounds.size.to_logical::<i32>(scale_factor).into();
+		let (width, height) = bounds.size.to_logical::<i32>(scale_factor).into();
 		let (x, y) = bounds.position.to_logical::<i32>(scale_factor).into();
 
 		if let Some(x11_data) = &self.x11 {
@@ -838,8 +763,7 @@ impl InnerWebView {
 		}
 
 		if self.is_in_fixed_parent {
-			self.webview
-				.size_allocate(&gtk::Allocation::new(x, y, width, height));
+			self.webview.size_allocate(&gtk::Allocation::new(x, y, width, height));
 		}
 
 		Ok(())
@@ -850,17 +774,11 @@ impl InnerWebView {
 			if x11_data.is_child {
 				if visible {
 					unsafe {
-						(x11_data.xlib.XMapWindow)(
-							x11_data.x11_display as _,
-							x11_data.x11_window,
-						)
+						(x11_data.xlib.XMapWindow)(x11_data.x11_display as _, x11_data.x11_window)
 					};
 				} else {
 					unsafe {
-						(x11_data.xlib.XUnmapWindow)(
-							x11_data.x11_display as _,
-							x11_data.x11_window,
-						)
+						(x11_data.xlib.XUnmapWindow)(x11_data.x11_display as _, x11_data.x11_window)
 					};
 				}
 			}
@@ -901,10 +819,8 @@ impl InnerWebView {
 	pub fn reparent<W>(&self, container:&W) -> Result<()>
 	where
 		W: gtk::prelude::IsA<gtk::Container>, {
-		if let Some(parent) = self
-			.webview
-			.parent()
-			.and_then(|p| p.dynamic_cast::<gtk::Container>().ok())
+		if let Some(parent) =
+			self.webview.parent().and_then(|p| p.dynamic_cast::<gtk::Container>().ok())
 		{
 			parent.remove(&self.webview);
 
@@ -917,11 +833,7 @@ impl InnerWebView {
 					0,
 				);
 			} else if container_type == "GtkFixed" {
-				container.dynamic_cast_ref::<gtk::Fixed>().unwrap().put(
-					&self.webview,
-					0,
-					0,
-				);
+				container.dynamic_cast_ref::<gtk::Fixed>().unwrap().put(&self.webview, 0, 0);
 			} else {
 				container.add(&self.webview);
 			}
@@ -951,15 +863,10 @@ struct SendEnteredSpan(tracing::span::EnteredSpan);
 unsafe impl Send for SendEnteredSpan {}
 
 const BASE_DPI:f64 = 96.0;
-fn scale_factor_from_x11(
-	xlib:&Xlib,
-	display:*mut _XDisplay,
-	parent:c_ulong,
-) -> f64 {
+fn scale_factor_from_x11(xlib:&Xlib, display:*mut _XDisplay, parent:c_ulong) -> f64 {
 	let mut attrs = unsafe { std::mem::zeroed() };
 	unsafe { (xlib.XGetWindowAttributes)(display, parent, &mut attrs) };
-	let scale_factor = unsafe {
-		(*attrs.screen).width as f64 * 25.4 / (*attrs.screen).mwidth as f64
-	};
+	let scale_factor =
+		unsafe { (*attrs.screen).width as f64 * 25.4 / (*attrs.screen).mwidth as f64 };
 	scale_factor / BASE_DPI
 }

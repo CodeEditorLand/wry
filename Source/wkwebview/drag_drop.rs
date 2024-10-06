@@ -26,40 +26,36 @@ const NSDragOperationCopy:NSDragOperation = 1;
 
 const DRAG_DROP_HANDLER_IVAR:&str = "DragDropHandler";
 
-static OBJC_DRAGGING_ENTERED:Lazy<
-	extern fn(*const Object, Sel, id) -> NSDragOperation,
-> = Lazy::new(|| unsafe {
-	std::mem::transmute(method_getImplementation(class_getInstanceMethod(
-		class!(WKWebView),
-		sel!(draggingEntered:),
-	)))
-});
-
-static OBJC_DRAGGING_EXITED:Lazy<extern fn(*const Object, Sel, id)> =
+static OBJC_DRAGGING_ENTERED:Lazy<extern fn(*const Object, Sel, id) -> NSDragOperation> =
 	Lazy::new(|| unsafe {
 		std::mem::transmute(method_getImplementation(class_getInstanceMethod(
 			class!(WKWebView),
-			sel!(draggingExited:),
+			sel!(draggingEntered:),
 		)))
 	});
 
-static OBJC_PERFORM_DRAG_OPERATION:Lazy<
-	extern fn(*const Object, Sel, id) -> BOOL,
-> = Lazy::new(|| unsafe {
+static OBJC_DRAGGING_EXITED:Lazy<extern fn(*const Object, Sel, id)> = Lazy::new(|| unsafe {
 	std::mem::transmute(method_getImplementation(class_getInstanceMethod(
 		class!(WKWebView),
-		sel!(performDragOperation:),
+		sel!(draggingExited:),
 	)))
 });
 
-static OBJC_DRAGGING_UPDATED:Lazy<
-	extern fn(*const Object, Sel, id) -> NSDragOperation,
-> = Lazy::new(|| unsafe {
-	std::mem::transmute(method_getImplementation(class_getInstanceMethod(
-		class!(WKWebView),
-		sel!(draggingUpdated:),
-	)))
-});
+static OBJC_PERFORM_DRAG_OPERATION:Lazy<extern fn(*const Object, Sel, id) -> BOOL> =
+	Lazy::new(|| unsafe {
+		std::mem::transmute(method_getImplementation(class_getInstanceMethod(
+			class!(WKWebView),
+			sel!(performDragOperation:),
+		)))
+	});
+
+static OBJC_DRAGGING_UPDATED:Lazy<extern fn(*const Object, Sel, id) -> NSDragOperation> =
+	Lazy::new(|| unsafe {
+		std::mem::transmute(method_getImplementation(class_getInstanceMethod(
+			class!(WKWebView),
+			sel!(draggingUpdated:),
+		)))
+	});
 
 // Safety: objc runtime calls are unsafe
 pub(crate) unsafe fn set_drag_drop_handler(
@@ -67,8 +63,7 @@ pub(crate) unsafe fn set_drag_drop_handler(
 	handler:Box<dyn Fn(DragDropEvent) -> bool>,
 ) -> *mut Box<dyn Fn(DragDropEvent) -> bool> {
 	let listener = Box::into_raw(Box::new(handler));
-	(*webview)
-		.set_ivar(DRAG_DROP_HANDLER_IVAR, listener as *mut _ as *mut c_void);
+	(*webview).set_ivar(DRAG_DROP_HANDLER_IVAR, listener as *mut _ as *mut c_void);
 	listener
 }
 
@@ -86,27 +81,18 @@ unsafe fn collect_paths(drag_info:id) -> Vec<PathBuf> {
 
 	let pb:id = msg_send![drag_info, draggingPasteboard];
 	let mut drag_drop_paths = Vec::new();
-	let types:id =
-		msg_send![class!(NSArray), arrayWithObject: NSFilenamesPboardType];
+	let types:id = msg_send![class!(NSArray), arrayWithObject: NSFilenamesPboardType];
 	if !NSPasteboard::availableTypeFromArray(pb, types).is_null() {
-		for path in
-			NSPasteboard::propertyListForType(pb, NSFilenamesPboardType).iter()
-		{
+		for path in NSPasteboard::propertyListForType(pb, NSFilenamesPboardType).iter() {
 			drag_drop_paths.push(PathBuf::from(
-				CStr::from_ptr(NSString::UTF8String(path))
-					.to_string_lossy()
-					.into_owned(),
+				CStr::from_ptr(NSString::UTF8String(path)).to_string_lossy().into_owned(),
 			));
 		}
 	}
 	drag_drop_paths
 }
 
-extern fn dragging_updated(
-	this:&mut Object,
-	sel:Sel,
-	drag_info:id,
-) -> NSDragOperation {
+extern fn dragging_updated(this:&mut Object, sel:Sel, drag_info:id) -> NSDragOperation {
 	let dl:NSPoint = unsafe { msg_send![drag_info, draggingLocation] };
 	let frame:NSRect = unsafe { msg_send![this, frame] };
 	let position = (dl.x as i32, (frame.size.height - dl.y) as i32);
@@ -128,11 +114,7 @@ extern fn dragging_updated(
 	}
 }
 
-extern fn dragging_entered(
-	this:&mut Object,
-	sel:Sel,
-	drag_info:id,
-) -> NSDragOperation {
+extern fn dragging_entered(this:&mut Object, sel:Sel, drag_info:id) -> NSDragOperation {
 	let listener = unsafe { get_handler(this) };
 	let paths = unsafe { collect_paths(drag_info) };
 
@@ -148,11 +130,7 @@ extern fn dragging_entered(
 	}
 }
 
-extern fn perform_drag_operation(
-	this:&mut Object,
-	sel:Sel,
-	drag_info:id,
-) -> BOOL {
+extern fn perform_drag_operation(this:&mut Object, sel:Sel, drag_info:id) -> BOOL {
 	let listener = unsafe { get_handler(this) };
 	let paths = unsafe { collect_paths(drag_info) };
 
@@ -194,8 +172,5 @@ pub(crate) unsafe fn add_drag_drop_methods(decl:&mut ClassDecl) {
 		perform_drag_operation as extern fn(&mut Object, Sel, id) -> BOOL,
 	);
 
-	decl.add_method(
-		sel!(draggingExited:),
-		dragging_exited as extern fn(&mut Object, Sel, id),
-	);
+	decl.add_method(sel!(draggingExited:), dragging_exited as extern fn(&mut Object, Sel, id));
 }

@@ -8,31 +8,17 @@ use objc::{
 
 use super::NSString;
 
-pub(crate) unsafe fn set_download_delegate(
-	webview:*mut Object,
-	download_delegate:*mut Object,
-) {
-	(*webview).set_ivar(
-		"DownloadDelegate",
-		download_delegate as *mut _ as *mut c_void,
-	);
+pub(crate) unsafe fn set_download_delegate(webview:*mut Object, download_delegate:*mut Object) {
+	(*webview).set_ivar("DownloadDelegate", download_delegate as *mut _ as *mut c_void);
 }
 
-unsafe fn get_download_delegate(
-	this:&mut Object,
-) -> *mut objc::runtime::Object {
+unsafe fn get_download_delegate(this:&mut Object) -> *mut objc::runtime::Object {
 	let delegate:*mut c_void = *this.get_ivar("DownloadDelegate");
 	delegate as *mut Object
 }
 
 // Download action handler
-extern fn navigation_download_action(
-	this:&mut Object,
-	_:Sel,
-	_:id,
-	_:id,
-	download:id,
-) {
+extern fn navigation_download_action(this:&mut Object, _:Sel, _:id, _:id, download:id) {
 	unsafe {
 		let delegate = get_download_delegate(this);
 		let _:() = msg_send![download, setDelegate: delegate];
@@ -40,13 +26,7 @@ extern fn navigation_download_action(
 }
 
 // Download response handler
-extern fn navigation_download_response(
-	this:&mut Object,
-	_:Sel,
-	_:id,
-	_:id,
-	download:id,
-) {
+extern fn navigation_download_response(this:&mut Object, _:Sel, _:id, _:id, download:id) {
 	unsafe {
 		let delegate = get_download_delegate(this);
 		let _:() = msg_send![download, setDelegate: delegate];
@@ -86,8 +66,8 @@ pub extern fn download_policy(
 
 		let function = this.get_ivar::<*mut c_void>("started");
 		if !function.is_null() {
-			let function = &mut *(*function
-				as *mut Box<dyn for<'s> FnMut(String, &mut PathBuf) -> bool>);
+			let function =
+				&mut *(*function as *mut Box<dyn for<'s> FnMut(String, &mut PathBuf) -> bool>);
 			match (function)(url.to_str().to_string(), &mut path) {
 				true => {
 					let nsurl:id = msg_send![class!(NSURL), fileURLWithPath: NSString::new(&path.display().to_string()) isDirectory: false];
@@ -98,8 +78,7 @@ pub extern fn download_policy(
 		} else {
 			#[cfg(feature = "tracing")]
 			tracing::warn!(
-				"WebView instance is dropped! This navigation handler \
-				 shouldn't be called."
+				"WebView instance is dropped! This navigation handler shouldn't be called."
 			);
 			(*handler).call((null_mut(),));
 		}
@@ -114,20 +93,14 @@ pub extern fn download_did_finish(this:&Object, _:Sel, download:id) {
 		let url:id = msg_send![url, absoluteString];
 		let url = NSString(url).to_str().to_string();
 		if !function.is_null() {
-			let function = &mut *(*function
-				as *mut Rc<dyn for<'s> Fn(String, Option<PathBuf>, bool)>);
+			let function =
+				&mut *(*function as *mut Rc<dyn for<'s> Fn(String, Option<PathBuf>, bool)>);
 			function(url, None, true);
 		}
 	}
 }
 
-pub extern fn download_did_fail(
-	this:&Object,
-	_:Sel,
-	download:id,
-	_error:id,
-	_:id,
-) {
+pub extern fn download_did_fail(this:&Object, _:Sel, download:id, _error:id, _:id) {
 	unsafe {
 		#[cfg(debug_assertions)]
 		{
@@ -143,8 +116,8 @@ pub extern fn download_did_fail(
 
 		let function = this.get_ivar::<*mut c_void>("completed");
 		if !function.is_null() {
-			let function = &mut *(*function
-				as *mut Rc<dyn for<'s> Fn(String, Option<PathBuf>, bool)>);
+			let function =
+				&mut *(*function as *mut Rc<dyn for<'s> Fn(String, Option<PathBuf>, bool)>);
 			function(url, None, false);
 		}
 	}

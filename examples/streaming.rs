@@ -72,10 +72,7 @@ fn main() -> wry::Result<()> {
 	event_loop.run(move |event, _, control_flow| {
 		*control_flow = ControlFlow::Wait;
 
-		if let Event::WindowEvent {
-			event: WindowEvent::CloseRequested, ..
-		} = event
-		{
+		if let Event::WindowEvent { event: WindowEvent::CloseRequested, .. } = event {
 			*control_flow = ControlFlow::Exit
 		}
 	});
@@ -116,10 +113,9 @@ fn stream_protocol(
 	request:http::Request<Vec<u8>>,
 ) -> Result<http::Response<Vec<u8>>, Box<dyn std::error::Error>> {
 	// skip leading `/`
-	let path =
-		percent_encoding::percent_decode(request.uri().path()[1..].as_bytes())
-			.decode_utf8_lossy()
-			.to_string();
+	let path = percent_encoding::percent_decode(request.uri().path()[1..].as_bytes())
+		.decode_utf8_lossy()
+		.to_string();
 
 	let mut file = std::fs::File::open(path)?;
 
@@ -136,9 +132,7 @@ fn stream_protocol(
 	// if the webview sent a range header, we need to send a 206 in return
 	// Actually only macOS and Windows are supported. Linux will ALWAYS return
 	// empty headers.
-	let http_response = if let Some(range_header) =
-		request.headers().get("range")
-	{
+	let http_response = if let Some(range_header) = request.headers().get("range") {
 		let not_satisfiable = || {
 			Response::builder()
 				.status(StatusCode::RANGE_NOT_SATISFIABLE)
@@ -147,16 +141,15 @@ fn stream_protocol(
 		};
 
 		// parse range header
-		let ranges =
-			if let Ok(ranges) = HttpRange::parse(range_header.to_str()?, len) {
-				ranges
+		let ranges = if let Ok(ranges) = HttpRange::parse(range_header.to_str()?, len) {
+			ranges
         .iter()
         // map the output back to spec range <start-end>, example: 0-499
         .map(|r| (r.start, r.start + r.length - 1))
         .collect::<Vec<_>>()
-			} else {
-				return Ok(not_satisfiable()?);
-			};
+		} else {
+			return Ok(not_satisfiable()?);
+		};
 
 		/// The Maximum bytes we send in one range
 		const MAX_LEN:u64 = 1000 * 1024;
@@ -185,8 +178,7 @@ fn stream_protocol(
 			// read the needed bytes
 			file.take(bytes_to_read).read_to_end(&mut buf)?;
 
-			resp = resp
-				.header(CONTENT_RANGE, format!("bytes {start}-{end}/{len}"));
+			resp = resp.header(CONTENT_RANGE, format!("bytes {start}-{end}/{len}"));
 			resp = resp.header(CONTENT_LENGTH, end + 1 - start);
 			resp = resp.status(StatusCode::PARTIAL_CONTENT);
 			resp.body(buf)
@@ -203,8 +195,7 @@ fn stream_protocol(
 						None
 					} else {
 						// adjust end byte for MAX_LEN
-						end = start
-							+ (end - start).min(len - start).min(MAX_LEN - 1);
+						end = start + (end - start).min(len - start).min(MAX_LEN - 1);
 						Some((start, end))
 					}
 				})
@@ -214,22 +205,16 @@ fn stream_protocol(
 			let boundary_sep = format!("\r\n--{boundary}\r\n");
 			let boundary_closer = format!("\r\n--{boundary}\r\n");
 
-			resp = resp.header(
-				CONTENT_TYPE,
-				format!("multipart/byteranges; boundary={boundary}"),
-			);
+			resp = resp.header(CONTENT_TYPE, format!("multipart/byteranges; boundary={boundary}"));
 
 			for (end, start) in ranges {
 				// a new range is being written, write the range boundary
 				buf.write_all(boundary_sep.as_bytes())?;
 
 				// write the needed headers `Content-Type` and `Content-Range`
+				buf.write_all(format!("{CONTENT_TYPE}: video/mp4\r\n").as_bytes())?;
 				buf.write_all(
-					format!("{CONTENT_TYPE}: video/mp4\r\n").as_bytes(),
-				)?;
-				buf.write_all(
-					format!("{CONTENT_RANGE}: bytes {start}-{end}/{len}\r\n")
-						.as_bytes(),
+					format!("{CONTENT_RANGE}: bytes {start}-{end}/{len}\r\n").as_bytes(),
 				)?;
 
 				// write the separator to indicate the start of the range body

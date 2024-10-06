@@ -62,9 +62,9 @@ fn main() -> wry::Result<()> {
 		*control_flow = ControlFlow::Wait;
 
 		match event {
-			Event::WindowEvent {
-				event: WindowEvent::CloseRequested, ..
-			} => *control_flow = ControlFlow::Exit,
+			Event::WindowEvent { event: WindowEvent::CloseRequested, .. } => {
+				*control_flow = ControlFlow::Exit
+			},
 
 			Event::WindowEvent {
 				event:
@@ -79,17 +79,11 @@ fn main() -> wry::Result<()> {
 					},
 				..
 			} => {
-				let new_parent = if webview_container == window.id() {
-					&window2
-				} else {
-					&window
-				};
+				let new_parent = if webview_container == window.id() { &window2 } else { &window };
 				webview_container = new_parent.id();
 
 				#[cfg(target_os = "macos")]
-				webview
-					.reparent(new_parent.ns_window() as cocoa::base::id)
-					.unwrap();
+				webview.reparent(new_parent.ns_window() as cocoa::base::id).unwrap();
 				#[cfg(not(any(
 					target_os = "windows",
 					target_os = "macos",

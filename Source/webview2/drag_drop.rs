@@ -16,14 +16,7 @@ use std::{
 use windows::{
 	core::implement,
 	Win32::{
-		Foundation::{
-			BOOL,
-			DRAGDROP_E_INVALIDHWND,
-			HWND,
-			LPARAM,
-			POINT,
-			POINTL,
-		},
+		Foundation::{BOOL, DRAGDROP_E_INVALIDHWND, HWND, LPARAM, POINT, POINTL},
 		Graphics::Gdi::ScreenToClient,
 		System::{
 			Com::{IDataObject, DVASPECT_CONTENT, FORMATETC, TYMED_HGLOBAL},
@@ -55,46 +48,31 @@ pub(crate) struct DragDropController {
 
 impl DragDropController {
 	#[inline]
-	pub(crate) fn new(
-		hwnd:HWND,
-		handler:Box<dyn Fn(DragDropEvent) -> bool>,
-	) -> Self {
+	pub(crate) fn new(hwnd:HWND, handler:Box<dyn Fn(DragDropEvent) -> bool>) -> Self {
 		let mut controller = DragDropController::default();
 
 		let handler = Rc::new(handler);
 
 		// Enumerate child windows to find the WebView2 "window" and override!
 		{
-			let mut callback =
-				|hwnd| controller.inject_in_hwnd(hwnd, handler.clone());
+			let mut callback = |hwnd| controller.inject_in_hwnd(hwnd, handler.clone());
 			let mut trait_obj:&mut dyn FnMut(HWND) -> bool = &mut callback;
 			let closure_pointer_pointer:*mut c_void =
 				unsafe { std::mem::transmute(&mut trait_obj) };
 			let lparam = LPARAM(closure_pointer_pointer as _);
-			unsafe extern "system" fn enumerate_callback(
-				hwnd:HWND,
-				lparam:LPARAM,
-			) -> BOOL {
-				let closure = &mut *(lparam.0 as *mut c_void
-					as *mut &mut dyn FnMut(HWND) -> bool);
+			unsafe extern "system" fn enumerate_callback(hwnd:HWND, lparam:LPARAM) -> BOOL {
+				let closure = &mut *(lparam.0 as *mut c_void as *mut &mut dyn FnMut(HWND) -> bool);
 				closure(hwnd).into()
 			}
-			let _ = unsafe {
-				EnumChildWindows(hwnd, Some(enumerate_callback), lparam)
-			};
+			let _ = unsafe { EnumChildWindows(hwnd, Some(enumerate_callback), lparam) };
 		}
 
 		controller
 	}
 
 	#[inline]
-	fn inject_in_hwnd(
-		&mut self,
-		hwnd:HWND,
-		handler:Rc<dyn Fn(DragDropEvent) -> bool>,
-	) -> bool {
-		let drag_drop_target:IDropTarget =
-			DragDropTarget::new(hwnd, handler).into();
+	fn inject_in_hwnd(&mut self, hwnd:HWND, handler:Rc<dyn Fn(DragDropEvent) -> bool>) -> bool {
+		let drag_drop_target:IDropTarget = DragDropTarget::new(hwnd, handler).into();
 		if unsafe { RevokeDragDrop(hwnd) } != Err(DRAGDROP_E_INVALIDHWND.into())
 			&& unsafe { RegisterDragDrop(hwnd, &drag_drop_target) }.is_ok()
 		{
@@ -116,10 +94,7 @@ pub struct DragDropTarget {
 }
 
 impl DragDropTarget {
-	pub fn new(
-		hwnd:HWND,
-		listener:Rc<dyn Fn(DragDropEvent) -> bool>,
-	) -> DragDropTarget {
+	pub fn new(hwnd:HWND, listener:Rc<dyn Fn(DragDropEvent) -> bool>) -> DragDropTarget {
 		Self {
 			hwnd,
 			listener,
@@ -128,10 +103,7 @@ impl DragDropTarget {
 		}
 	}
 
-	unsafe fn iterate_filenames<F>(
-		data_obj:Option<&IDataObject>,
-		mut callback:F,
-	) -> Option<HDROP>
+	unsafe fn iterate_filenames<F>(data_obj:Option<&IDataObject>, mut callback:F) -> Option<HDROP>
 	where
 		F: FnMut(PathBuf), {
 		let drop_format = FORMATETC {
@@ -142,11 +114,7 @@ impl DragDropTarget {
 			tymed:TYMED_HGLOBAL.0 as u32,
 		};
 
-		match data_obj
-			.as_ref()
-			.expect("Received null IDataObject")
-			.GetData(&drop_format)
-		{
+		match data_obj.as_ref().expect("Received null IDataObject").GetData(&drop_format) {
 			Ok(medium) => {
 				let hdrop = HDROP(medium.u.hGlobal.0 as _);
 
@@ -160,23 +128,15 @@ impl DragDropTarget {
 					// using a fixed size array of MAX_PATH length, but the
 					// Windows API allows longer paths under certain
 					// circumstances.
-					let character_count =
-						DragQueryFileW(hdrop, i, None) as usize;
+					let character_count = DragQueryFileW(hdrop, i, None) as usize;
 					let str_len = character_count + 1;
 
 					// Fill path_buf with the null-terminated file name
 					let mut path_buf = Vec::with_capacity(str_len);
-					DragQueryFileW(
-						hdrop,
-						i,
-						std::mem::transmute(path_buf.spare_capacity_mut()),
-					);
+					DragQueryFileW(hdrop, i, std::mem::transmute(path_buf.spare_capacity_mut()));
 					path_buf.set_len(str_len);
 
-					callback(
-						OsString::from_wide(&path_buf[0..character_count])
-							.into(),
-					);
+					callback(OsString::from_wide(&path_buf[0..character_count]).into());
 				}
 
 				Some(hdrop)
@@ -190,12 +150,10 @@ impl DragDropTarget {
 							// If the dropped item is not a file this error will
 							// occur. In this case it is OK to return
 							// without taking further action.
-							"Error occurred while processing dropped/hovered \
-							 item: item is not a file."
+							"Error occurred while processing dropped/hovered item: item is not a \
+							 file."
 						},
-						_ =>
-							"Unexpected error occurred while processing \
-							 dropped/hovered item.",
+						_ => "Unexpected error occurred while processing dropped/hovered item.",
 					}
 				);
 				None
@@ -217,20 +175,14 @@ impl IDropTarget_Impl for DragDropTarget_Impl {
 		let _ = unsafe { ScreenToClient(self.hwnd, &mut pt) };
 
 		let mut paths = Vec::new();
-		let hdrop = unsafe {
-			DragDropTarget::iterate_filenames(pDataObj, |path| paths.push(path))
-		};
-		(self.listener)(DragDropEvent::Enter {
-			paths,
-			position:(pt.x as _, pt.y as _),
-		});
+		let hdrop = unsafe { DragDropTarget::iterate_filenames(pDataObj, |path| paths.push(path)) };
+		(self.listener)(DragDropEvent::Enter { paths, position:(pt.x as _, pt.y as _) });
 
 		unsafe {
 			let enter_is_valid = hdrop.is_some();
 			*self.enter_is_valid.get() = enter_is_valid;
 
-			let cursor_effect =
-				if enter_is_valid { DROPEFFECT_COPY } else { DROPEFFECT_NONE };
+			let cursor_effect = if enter_is_valid { DROPEFFECT_COPY } else { DROPEFFECT_NONE };
 			*pdwEffect = cursor_effect;
 			*self.cursor_effect.get() = cursor_effect;
 		}
@@ -247,9 +199,7 @@ impl IDropTarget_Impl for DragDropTarget_Impl {
 		if unsafe { *self.enter_is_valid.get() } {
 			let mut pt = POINT { x:pt.x, y:pt.y };
 			let _ = unsafe { ScreenToClient(self.hwnd, &mut pt) };
-			(self.listener)(DragDropEvent::Over {
-				position:(pt.x as _, pt.y as _),
-			});
+			(self.listener)(DragDropEvent::Over { position:(pt.x as _, pt.y as _) });
 		}
 
 		unsafe { *pdwEffect = *self.cursor_effect.get() };
@@ -275,15 +225,9 @@ impl IDropTarget_Impl for DragDropTarget_Impl {
 			let _ = unsafe { ScreenToClient(self.hwnd, &mut pt) };
 
 			let mut paths = Vec::new();
-			let hdrop = unsafe {
-				DragDropTarget::iterate_filenames(pDataObj, |path| {
-					paths.push(path)
-				})
-			};
-			(self.listener)(DragDropEvent::Drop {
-				paths,
-				position:(pt.x as _, pt.y as _),
-			});
+			let hdrop =
+				unsafe { DragDropTarget::iterate_filenames(pDataObj, |path| paths.push(path)) };
+			(self.listener)(DragDropEvent::Drop { paths, position:(pt.x as _, pt.y as _) });
 
 			if let Some(hdrop) = hdrop {
 				unsafe { DragFinish(hdrop) };

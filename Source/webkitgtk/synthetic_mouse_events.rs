@@ -7,9 +7,7 @@ use gtk::{
 use webkit2gtk::{WebView, WebViewExt};
 
 pub fn setup(webview:&WebView) {
-	webview.add_events(
-		EventMask::BUTTON1_MOTION_MASK | EventMask::BUTTON_PRESS_MASK,
-	);
+	webview.add_events(EventMask::BUTTON1_MOTION_MASK | EventMask::BUTTON_PRESS_MASK);
 
 	let bf_state = BackForwardState(Rc::new(RefCell::new(0)));
 
@@ -81,11 +79,7 @@ pub fn setup(webview:&WebView) {
 	});
 }
 
-fn create_js_mouse_event(
-	event:&EventButton,
-	pressed:bool,
-	state:&BackForwardState,
-) -> String {
+fn create_js_mouse_event(event:&EventButton, pressed:bool, state:&BackForwardState) -> String {
 	let event_name = if pressed { "mousedown" } else { "mouseup" };
 	// js equivalent https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/button
 	let button = if event.button() == 8 { 3 } else { 4 };

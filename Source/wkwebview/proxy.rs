@@ -24,10 +24,7 @@ extern {
 	fn nw_endpoint_create_url(url:*const c_char) -> nw_endpoint_t;
 	#[allow(dead_code)]
 	fn nw_endpoint_get_url(endpoint:nw_endpoint_t) -> *const c_char;
-	fn nw_endpoint_create_host(
-		host:*const c_char,
-		port:*const c_char,
-	) -> nw_endpoint_t;
+	fn nw_endpoint_create_host(host:*const c_char, port:*const c_char) -> nw_endpoint_t;
 	#[allow(dead_code)]
 	fn nw_proxy_config_set_username_and_password(
 		proxy_config:nw_proxy_config_t,
@@ -45,9 +42,7 @@ extern {
 		first_hop:nw_relay_hop_t,
 		second_hop:nw_relay_hop_t,
 	) -> nw_proxy_config_t;
-	pub fn nw_proxy_config_create_socksv5(
-		proxy_endpoint:nw_endpoint_t,
-	) -> nw_proxy_config_t;
+	pub fn nw_proxy_config_create_socksv5(proxy_endpoint:nw_endpoint_t) -> nw_proxy_config_t;
 	pub fn nw_proxy_config_create_http_connect(
 		proxy_endpoint:nw_endpoint_t,
 		proxy_tls_options:nw_protocol_options_t,
@@ -61,8 +56,7 @@ impl TryFrom<ProxyEndpoint> for nw_endpoint_t {
 		unsafe {
 			let endpoint_host = NSString::new(&endpoint.host).to_cstr();
 			let endpoint_port = NSString::new(&endpoint.port).to_cstr();
-			let endpoint =
-				nw_endpoint_create_host(endpoint_host, endpoint_port);
+			let endpoint = nw_endpoint_create_host(endpoint_host, endpoint_port);
 
 			match endpoint {
 				#[allow(non_upper_case_globals)]
