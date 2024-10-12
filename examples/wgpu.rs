@@ -100,14 +100,14 @@ fn fs_main() -> @location(0) vec4<f32> {
 
 	surface.configure(&device, &config);
 
-	let _webview = WebViewBuilder::new_as_child(&window)
-		.with_bounds(Rect {
-			position:LogicalPosition::new(100, 100).into(),
-			size:LogicalSize::new(200, 200).into(),
-		})
-		.with_transparent(true)
-		.with_html(
-			r#"<html>
+  let _webview = WebViewBuilder::new()
+    .with_bounds(Rect {
+      position: LogicalPosition::new(100, 100).into(),
+      size: LogicalSize::new(200, 200).into(),
+    })
+    .with_transparent(true)
+    .with_html(
+      r#"<html>
           <body style="background-color:rgba(87,87,87,0.5);"></body>
           <script>
             window.onload = function() {
@@ -115,9 +115,9 @@ fn fs_main() -> @location(0) vec4<f32> {
             };
           </script>
         </html>"#,
-		)
-		.build()
-		.unwrap();
+    )
+    .build_as_child(&window)
+    .unwrap();
 
 	event_loop
 		.run(|event, evl| {

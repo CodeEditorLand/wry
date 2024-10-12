@@ -83,37 +83,34 @@ fn create_new_window(
 		}
 	};
 
-	#[cfg(any(
-		target_os = "windows",
-		target_os = "macos",
-		target_os = "ios",
-		target_os = "android"
-	))]
-	let builder = WebViewBuilder::new(&window);
-
-	#[cfg(not(any(
-		target_os = "windows",
-		target_os = "macos",
-		target_os = "ios",
-		target_os = "android"
-	)))]
-	let builder = {
-		use tao::platform::unix::WindowExtUnix;
-		use wry::WebViewBuilderExtUnix;
-		let vbox = window.default_vbox().unwrap();
-		WebViewBuilder::new_gtk(vbox)
-	};
-
-	let webview = builder
-		.with_html(
-			r#"
+  let builder = WebViewBuilder::new()
+    .with_html(
+      r#"
         <button onclick="window.ipc.postMessage('new-window')">Open a new window</button>
         <button onclick="window.ipc.postMessage('close')">Close current window</button>
         <input oninput="window.ipc.postMessage(`change-title:${this.value}`)" />
     "#,
-		)
-		.with_ipc_handler(handler)
-		.build()
-		.unwrap();
-	(window, webview)
+    )
+    .with_ipc_handler(handler);
+
+  #[cfg(any(
+    target_os = "windows",
+    target_os = "macos",
+    target_os = "ios",
+    target_os = "android"
+  ))]
+  let webview = builder.build(&window).unwrap();
+  #[cfg(not(any(
+    target_os = "windows",
+    target_os = "macos",
+    target_os = "ios",
+    target_os = "android"
+  )))]
+  let webview = {
+    use tao::platform::unix::WindowExtUnix;
+    use wry::WebViewBuilderExtUnix;
+    let vbox = window.default_vbox().unwrap();
+    builder.build_gtk(vbox).unwrap()
+  };
+  (window, webview)
 }

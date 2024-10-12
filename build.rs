@@ -56,15 +56,19 @@ fn main() {
 				println!("cargo:rerun-if-env-changed={class_extension_env}");
 				println!("cargo:rerun-if-env-changed={class_init_env}");
 
-				let content = fs::read_to_string(file.path())
-					.expect("failed to read kotlin file as string")
-					.replace("{{package}}", &package)
-					.replace("{{library}}", &library)
-					.replace(
-						"{{class-extension}}",
-						&std::env::var(&class_extension_env).unwrap_or_default(),
-					)
-					.replace("{{class-init}}", &std::env::var(&class_init_env).unwrap_or_default());
+        let content = fs::read_to_string(file.path())
+          .expect("failed to read kotlin file as string")
+          .replace("{{package}}", &package)
+          .replace("{{package-unescaped}}", &package.replace('`', ""))
+          .replace("{{library}}", &library)
+          .replace(
+            "{{class-extension}}",
+            &std::env::var(&class_extension_env).unwrap_or_default(),
+          )
+          .replace(
+            "{{class-init}}",
+            &std::env::var(&class_init_env).unwrap_or_default(),
+          );
 
 				let auto_generated_comment = match file
 					.path()

@@ -2,7 +2,7 @@ workspace = {}
 
 [package]
 name = "wry"
-version = "0.45.0"
+version = "0.46.0"
 authors = ["Tauri Programme within The Commons Conservancy"]
 edition = "2021"
 license = "Apache-2.0 OR MIT"
@@ -17,9 +17,9 @@ exclude = ["/.changes", "/.github", "/audits", "/wry-logo.svg"]
 no-default-features = true
 features = ["drag-drop", "protocol", "os-webview"]
 targets = [
-	"x86_64-unknown-linux-gnu",
-	"x86_64-pc-windows-msvc",
-	"x86_64-apple-darwin",
+  "x86_64-unknown-linux-gnu",
+  "x86_64-pc-windows-msvc",
+  "x86_64-apple-darwin",
 ]
 rustc-args = ["--cfg", "docsrs"]
 rustdoc-args = ["--cfg", "docsrs"]
@@ -27,7 +27,7 @@ rustdoc-args = ["--cfg", "docsrs"]
 [features]
 default = ["drag-drop", "objc-exception", "protocol", "os-webview"]
 serde = ["dpi/serde"]
-objc-exception = ["objc/exception"]
+objc-exception = ["objc2/catch-all"]
 drag-drop = []
 protocol = []
 devtools = []
@@ -36,13 +36,13 @@ fullscreen = []
 linux-body = ["webkit2gtk/v2_40", "os-webview"]
 mac-proxy = []
 os-webview = [
-	"javascriptcore-rs",
-	"webkit2gtk",
-	"webkit2gtk-sys",
-	"dep:gtk",
-	"soup3",
-	"x11-dl",
-	"gdkx11",
+  "javascriptcore-rs",
+  "webkit2gtk",
+  "webkit2gtk-sys",
+  "dep:gtk",
+  "soup3",
+  "x11-dl",
+  "gdkx11",
 ]
 tracing = ["dep:tracing"]
 
@@ -55,9 +55,11 @@ raw-window-handle = { version = "0.6", features = ["std"] }
 dpi = "0.1"
 
 [target."cfg(any(target_os = \"linux\", target_os = \"dragonfly\", target_os = \"freebsd\", target_os = \"openbsd\", target_os = \"netbsd\"))".dependencies]
-javascriptcore-rs = { version = "1.1.2", features = ["v2_28"], optional = true }
-webkit2gtk = { version = "2.0.1", features = ["v2_38"], optional = true }
-webkit2gtk-sys = { version = "2.0.1", optional = true }
+javascriptcore-rs = { version = "=1.1.2", features = [
+  "v2_28",
+], optional = true }
+webkit2gtk = { version = "=2.0.1", features = ["v2_38"], optional = true }
+webkit2gtk-sys = { version = "=2.0.1", optional = true }
 gtk = { version = "0.18", optional = true }
 soup3 = { version = "0.7", optional = true }
 x11-dl = { version = "2.21", optional = true }
@@ -73,29 +75,93 @@ dunce = "1"
 [target."cfg(target_os = \"windows\")".dependencies.windows]
 version = "0.58"
 features = [
-	"implement",
-	"Win32_Foundation",
-	"Win32_Graphics_Gdi",
-	"Win32_System_Com",
-	"Win32_System_Com_StructuredStorage",
-	"Win32_System_LibraryLoader",
-	"Win32_System_Ole",
-	"Win32_System_SystemInformation",
-	"Win32_System_SystemServices",
-	"Win32_UI_Shell",
-	"Win32_UI_WindowsAndMessaging",
-	"Win32_Globalization",
-	"Win32_UI_HiDpi",
-	"Win32_UI_Input",
-	"Win32_UI_Input_KeyboardAndMouse",
+  "implement",
+  "Win32_Foundation",
+  "Win32_Graphics_Gdi",
+  "Win32_System_Com",
+  "Win32_System_Com_StructuredStorage",
+  "Win32_System_LibraryLoader",
+  "Win32_System_Ole",
+  "Win32_System_SystemInformation",
+  "Win32_System_SystemServices",
+  "Win32_UI_Shell",
+  "Win32_UI_WindowsAndMessaging",
+  "Win32_Globalization",
+  "Win32_UI_HiDpi",
+  "Win32_UI_Input",
+  "Win32_UI_Input_KeyboardAndMouse",
 ]
 
 [target."cfg(any(target_os = \"ios\", target_os = \"macos\"))".dependencies]
-block = "0.1"
-cocoa = "0.26"
-core-graphics = "0.24"
-objc = "0.2"
-objc_id = "0.1"
+block2 = "0.5"
+objc2 = { version = "0.5", features = ["exception"] }
+objc2-web-kit = { version = "0.2.0", features = [
+  "objc2-app-kit",
+  "block2",
+  "WKWebView",
+  "WKWebViewConfiguration",
+  "WKWebsiteDataStore",
+  "WKDownload",
+  "WKDownloadDelegate",
+  "WKNavigation",
+  "WKNavigationDelegate",
+  "WKUserContentController",
+  "WKURLSchemeHandler",
+  "WKPreferences",
+  "WKURLSchemeTask",
+  "WKScriptMessageHandler",
+  "WKUIDelegate",
+  "WKOpenPanelParameters",
+  "WKFrameInfo",
+  "WKSecurityOrigin",
+  "WKScriptMessage",
+  "WKNavigationAction",
+  "WKWebpagePreferences",
+  "WKNavigationResponse",
+  "WKUserScript",
+] }
+objc2-foundation = { version = "0.2.0", features = [
+  "NSURLRequest",
+  "NSURL",
+  "NSString",
+  "NSKeyValueCoding",
+  "NSStream",
+  "NSDictionary",
+  "NSObject",
+  "NSData",
+  "NSKeyValueObserving",
+  "NSThread",
+  "NSJSONSerialization",
+  "NSDate",
+  "NSBundle",
+  "NSProcessInfo",
+  "NSValue",
+  "NSRange",
+] }
+
+[target."cfg(target_os = \"ios\")".dependencies]
+objc2-ui-kit = { version = "0.2.2", features = [
+  "UIResponder",
+  "UIScrollView",
+  "UIView",
+  "UIWindow",
+  "UIApplication",
+  "UIEvent",
+] }
+
+[target."cfg(target_os = \"macos\")".dependencies]
+objc2-app-kit = { version = "0.2.0", features = [
+  "NSApplication",
+  "NSEvent",
+  "NSWindow",
+  "NSView",
+  "NSPasteboard",
+  "NSPanel",
+  "NSResponder",
+  "NSOpenPanel",
+  "NSSavePanel",
+  "NSMenu",
+] }
 
 [target."cfg(target_os = \"android\")".dependencies]
 crossbeam-channel = "0.5"

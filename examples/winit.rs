@@ -40,7 +40,9 @@ fn main() -> wry::Result<()> {
 		.build(&event_loop)
 		.unwrap();
 
-	let webview = WebViewBuilder::new_as_child(&window).with_url("https://tauri.app").build()?;
+  let webview = WebViewBuilder::new()
+    .with_url("https://tauri.app")
+    .build_as_child(&window)?;
 
 	event_loop
 		.run(move |event, evl| {
