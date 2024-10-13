@@ -1,13 +1,13 @@
 # Mobile Setup for Wry
 
-We use [cargo-mobile2](https://github.com/tauri-apps/cargo-mobile2) to create a
+We use [`cargo-mobile2`](https://github.com/tauri-apps/cargo-mobile2) to create a
 mobile project for both Xcode and Android studio.
 
 ## Prerequisite
 
 -   Works on **Linux**, **Windows**, **macOS**, and **WSL**(Windows subsystem
     for Linux).
--   **Xcode** and [**Android Studio**](https://developer.android.com/studio)
+-   **Xcode** and [`**Android Studio**`](https://developer.android.com/studio)
     installed properly. This is **the most difficult** part IMHO. This means all
     toolchains and SDK are all installed. Please report an issue with
     **comprehensive** steps if you encounter any problem.
@@ -103,7 +103,7 @@ If you don't want or can't use Android Studio you can still get the SDK Manager
 cli quite easily and use it to install other components.
 
 > Note: The SDK Manager is part of the "Command line tools only" that can be
-> downloaded from [here](https://developer.android.com/studio#command-tools)
+> downloaded from [`here`](https://developer.android.com/studio#command-tools)
 
 ##### Linux/WSL/macOS
 
@@ -173,7 +173,7 @@ $env:ANDROID_HOME="$HOME\.android"
 
 You'll need to set up some environment variables to get everything to work
 properly. The environment variables below should be all the ones your need to be
-able to use [cargo-mobile2](https://github.com/tauri-apps/cargo-mobile2) to
+able to use [`cargo-mobile2`](https://github.com/tauri-apps/cargo-mobile2) to
 build/run your android app.
 
 ##### Linux/WSL/macOS
@@ -252,7 +252,7 @@ rustup target add aarch64-linux-android armv7-linux-androideabi i686-linux-andro
 
 Now lets bootstrap a project to develop a tauri or wry project for mobile.
 
--   Install [cargo-mobile2](https://github.com/tauri-apps/cargo-mobile2) CLI by
+-   Install [`cargo-mobile2`](https://github.com/tauri-apps/cargo-mobile2) CLI by
     running:
     ```bash
     cargo install --git https://github.com/tauri-apps/cargo-mobile2
@@ -306,7 +306,7 @@ section to press "Apple Development: APPLE_ID" -> Trust.
 -   Choose an emulator. I usually choose Pixel 4 API 32
 -   (optional) if you face this error
     `Device supports x86, but APK only supports armeabi-v7a` then check this
-    [Stack Overflow answer](https://stackoverflow.com/questions/41775988/what-is-the-reason-for-the-error-device-supports-x86-but-apk-only-supports-arm/43742161#43742161)
+    [`Stack Overflow answer`](https://stackoverflow.com/questions/41775988/what-is-the-reason-for-the-error-device-supports-x86-but-apk-only-supports-arm/43742161#43742161)
     to fix it.
 -   Press run button.
 
