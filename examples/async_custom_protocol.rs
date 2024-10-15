@@ -5,18 +5,18 @@
 use std::path::PathBuf;
 
 use tao::{
-	event::{Event, WindowEvent},
-	event_loop::{ControlFlow, EventLoop},
-	window::WindowBuilder,
+  event::{Event, WindowEvent},
+  event_loop::{ControlFlow, EventLoop},
+  window::WindowBuilder,
 };
 use wry::{
-	http::{header::CONTENT_TYPE, Request, Response},
-	WebViewBuilder,
+  http::{header::CONTENT_TYPE, Request, Response},
+  WebViewBuilder,
 };
 
 fn main() -> wry::Result<()> {
-	let event_loop = EventLoop::new();
-	let window = WindowBuilder::new().build(&event_loop).unwrap();
+  let event_loop = EventLoop::new();
+  let window = WindowBuilder::new().build(&event_loop).unwrap();
 
   let builder = WebViewBuilder::new()
     .with_asynchronous_custom_protocol("wry".into(), move |_webview_id, request, responder| {
@@ -54,46 +54,50 @@ fn main() -> wry::Result<()> {
     builder.build_gtk(vbox)?
   };
 
-	event_loop.run(move |event, _, control_flow| {
-		*control_flow = ControlFlow::Wait;
+  event_loop.run(move |event, _, control_flow| {
+    *control_flow = ControlFlow::Wait;
 
-		if let Event::WindowEvent { event: WindowEvent::CloseRequested, .. } = event {
-			*control_flow = ControlFlow::Exit
-		}
-	});
+    if let Event::WindowEvent {
+      event: WindowEvent::CloseRequested,
+      ..
+    } = event
+    {
+      *control_flow = ControlFlow::Exit
+    }
+  });
 }
 
 fn get_wry_response(
-	request:Request<Vec<u8>>,
+  request: Request<Vec<u8>>,
 ) -> Result<http::Response<Vec<u8>>, Box<dyn std::error::Error>> {
-	let path = request.uri().path();
-	// Read the file content from file path
-	let root = PathBuf::from("examples/custom_protocol");
-	let path = if path == "/" {
-		"index.html"
-	} else {
-		//  removing leading slash
-		&path[1..]
-	};
-	let content = std::fs::read(std::fs::canonicalize(root.join(path))?)?;
+  let path = request.uri().path();
+  // Read the file content from file path
+  let root = PathBuf::from("examples/custom_protocol");
+  let path = if path == "/" {
+    "index.html"
+  } else {
+    //  removing leading slash
+    &path[1..]
+  };
+  let content = std::fs::read(std::fs::canonicalize(root.join(path))?)?;
 
-	// Return asset contents and mime types based on file extentions
-	// If you don't want to do this manually, there are some crates for you.
-	// Such as `infer` and `mime_guess`.
-	let mimetype = if path.ends_with(".html") || path == "/" {
-		"text/html"
-	} else if path.ends_with(".js") {
-		"text/javascript"
-	} else if path.ends_with(".png") {
-		"image/png"
-	} else if path.ends_with(".wasm") {
-		"application/wasm"
-	} else {
-		unimplemented!();
-	};
+  // Return asset contents and mime types based on file extentions
+  // If you don't want to do this manually, there are some crates for you.
+  // Such as `infer` and `mime_guess`.
+  let mimetype = if path.ends_with(".html") || path == "/" {
+    "text/html"
+  } else if path.ends_with(".js") {
+    "text/javascript"
+  } else if path.ends_with(".png") {
+    "image/png"
+  } else if path.ends_with(".wasm") {
+    "application/wasm"
+  } else {
+    unimplemented!();
+  };
 
-	Response::builder()
-		.header(CONTENT_TYPE, mimetype)
-		.body(content)
-		.map_err(Into::into)
+  Response::builder()
+    .header(CONTENT_TYPE, mimetype)
+    .body(content)
+    .map_err(Into::into)
 }

@@ -3,19 +3,18 @@
 // SPDX-License-Identifier: MIT
 
 use tao::{
-	event::{Event, WindowEvent},
-	event_loop::{ControlFlow, EventLoop},
-	window::WindowBuilder,
+  event::{Event, WindowEvent},
+  event_loop::{ControlFlow, EventLoop},
+  window::WindowBuilder,
 };
 use wry::{
-	dpi::{LogicalPosition, LogicalSize},
-	Rect,
-	WebViewBuilder,
+  dpi::{LogicalPosition, LogicalSize},
+  Rect, WebViewBuilder,
 };
 
 fn main() -> wry::Result<()> {
-	let event_loop = EventLoop::new();
-	let window = WindowBuilder::new().build(&event_loop).unwrap();
+  let event_loop = EventLoop::new();
+  let window = WindowBuilder::new().build(&event_loop).unwrap();
 
   let build_webview = |builder: WebViewBuilder<'_>| -> wry::Result<wry::WebView> {
     #[cfg(any(
@@ -47,7 +46,7 @@ fn main() -> wry::Result<()> {
     Ok(webview)
   };
 
-	let size = window.inner_size().to_logical::<u32>(window.scale_factor());
+  let size = window.inner_size().to_logical::<u32>(window.scale_factor());
 
   let builder = WebViewBuilder::new()
     .with_bounds(Rect {
@@ -81,41 +80,45 @@ fn main() -> wry::Result<()> {
     .with_url("https://google.com");
   let webview4 = build_webview(builder4)?;
 
-	event_loop.run(move |event, _, control_flow| {
-		*control_flow = ControlFlow::Wait;
+  event_loop.run(move |event, _, control_flow| {
+    *control_flow = ControlFlow::Wait;
 
-		match event {
-			Event::WindowEvent { event: WindowEvent::Resized(size), .. } => {
-				let size = size.to_logical::<u32>(window.scale_factor());
-				webview
-					.set_bounds(Rect {
-						position:LogicalPosition::new(0, 0).into(),
-						size:LogicalSize::new(size.width / 2, size.height / 2).into(),
-					})
-					.unwrap();
-				webview2
-					.set_bounds(Rect {
-						position:LogicalPosition::new(size.width / 2, 0).into(),
-						size:LogicalSize::new(size.width / 2, size.height / 2).into(),
-					})
-					.unwrap();
-				webview3
-					.set_bounds(Rect {
-						position:LogicalPosition::new(0, size.height / 2).into(),
-						size:LogicalSize::new(size.width / 2, size.height / 2).into(),
-					})
-					.unwrap();
-				webview4
-					.set_bounds(Rect {
-						position:LogicalPosition::new(size.width / 2, size.height / 2).into(),
-						size:LogicalSize::new(size.width / 2, size.height / 2).into(),
-					})
-					.unwrap();
-			},
-			Event::WindowEvent { event: WindowEvent::CloseRequested, .. } => {
-				*control_flow = ControlFlow::Exit
-			},
-			_ => {},
-		}
-	});
+    match event {
+      Event::WindowEvent {
+        event: WindowEvent::Resized(size),
+        ..
+      } => {
+        let size = size.to_logical::<u32>(window.scale_factor());
+        webview
+          .set_bounds(Rect {
+            position: LogicalPosition::new(0, 0).into(),
+            size: LogicalSize::new(size.width / 2, size.height / 2).into(),
+          })
+          .unwrap();
+        webview2
+          .set_bounds(Rect {
+            position: LogicalPosition::new(size.width / 2, 0).into(),
+            size: LogicalSize::new(size.width / 2, size.height / 2).into(),
+          })
+          .unwrap();
+        webview3
+          .set_bounds(Rect {
+            position: LogicalPosition::new(0, size.height / 2).into(),
+            size: LogicalSize::new(size.width / 2, size.height / 2).into(),
+          })
+          .unwrap();
+        webview4
+          .set_bounds(Rect {
+            position: LogicalPosition::new(size.width / 2, size.height / 2).into(),
+            size: LogicalSize::new(size.width / 2, size.height / 2).into(),
+          })
+          .unwrap();
+      }
+      Event::WindowEvent {
+        event: WindowEvent::CloseRequested,
+        ..
+      } => *control_flow = ControlFlow::Exit,
+      _ => {}
+    }
+  });
 }

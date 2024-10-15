@@ -3,21 +3,39 @@
 // SPDX-License-Identifier: MIT
 
 use tao::{
-	event::{ElementState, Event, KeyEvent, WindowEvent},
-	event_loop::{ControlFlow, EventLoop},
-	keyboard::Key,
-	window::WindowBuilder,
+  event::{ElementState, Event, KeyEvent, WindowEvent},
+  event_loop::{ControlFlow, EventLoop},
+  keyboard::Key,
+  window::WindowBuilder,
 };
 use wry::WebViewBuilder;
+
 #[cfg(target_os = "macos")]
 use {objc2_app_kit::NSWindow, tao::platform::macos::WindowExtMacOS, wry::WebViewExtMacOS};
 #[cfg(target_os = "windows")]
 use {tao::platform::windows::WindowExtWindows, wry::WebViewExtWindows};
 
+#[cfg(not(any(
+  target_os = "windows",
+  target_os = "macos",
+  target_os = "ios",
+  target_os = "android"
+)))]
+#[cfg(not(any(
+  target_os = "windows",
+  target_os = "macos",
+  target_os = "ios",
+  target_os = "android"
+)))]
+use {
+  tao::platform::unix::WindowExtUnix,
+  wry::{WebViewBuilderExtUnix, WebViewExtUnix},
+};
+
 fn main() -> wry::Result<()> {
-	let event_loop = EventLoop::new();
-	let window = WindowBuilder::new().build(&event_loop).unwrap();
-	let window2 = WindowBuilder::new().build(&event_loop).unwrap();
+  let event_loop = EventLoop::new();
+  let window = WindowBuilder::new().build(&event_loop).unwrap();
+  let window2 = WindowBuilder::new().build(&event_loop).unwrap();
 
   let builder = WebViewBuilder::new().with_url("https://tauri.app");
 
@@ -42,29 +60,34 @@ fn main() -> wry::Result<()> {
 
   let mut webview_container = window.id();
 
-	event_loop.run(move |event, _event_loop, control_flow| {
-		*control_flow = ControlFlow::Wait;
+  event_loop.run(move |event, _event_loop, control_flow| {
+    *control_flow = ControlFlow::Wait;
 
-		match event {
-			Event::WindowEvent { event: WindowEvent::CloseRequested, .. } => {
-				*control_flow = ControlFlow::Exit
-			},
+    match event {
+      Event::WindowEvent {
+        event: WindowEvent::CloseRequested,
+        ..
+      } => *control_flow = ControlFlow::Exit,
 
-			Event::WindowEvent {
-				event:
-					WindowEvent::KeyboardInput {
-						event:
-							KeyEvent {
-								logical_key: Key::Character("x"),
-								state: ElementState::Pressed,
-								..
-							},
-						..
-					},
-				..
-			} => {
-				let new_parent = if webview_container == window.id() { &window2 } else { &window };
-				webview_container = new_parent.id();
+      Event::WindowEvent {
+        event:
+          WindowEvent::KeyboardInput {
+            event:
+              KeyEvent {
+                logical_key: Key::Character("x"),
+                state: ElementState::Pressed,
+                ..
+              },
+            ..
+          },
+        ..
+      } => {
+        let new_parent = if webview_container == window.id() {
+          &window2
+        } else {
+          &window
+        };
+        webview_container = new_parent.id();
 
         #[cfg(target_os = "macos")]
         webview
