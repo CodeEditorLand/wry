@@ -61,7 +61,7 @@ javascriptcore-rs = { version = "=1.1.2", features = [
 webkit2gtk = { version = "=2.0.1", features = ["v2_38"], optional = true }
 webkit2gtk-sys = { version = "=2.0.1", optional = true }
 gtk = { version = "0.18", optional = true }
-soup3 = { version = "0.5", optional = true }
+soup3 = { version = "0.7", optional = true }
 x11-dl = { version = "2.21", optional = true }
 gdkx11 = { version = "0.18", optional = true }
 percent-encoding = "2.3"
@@ -95,7 +95,7 @@ features = [
 [target."cfg(any(target_os = \"ios\", target_os = \"macos\"))".dependencies]
 block2 = "0.5"
 objc2 = { version = "0.5", features = ["exception"] }
-objc2-web-kit = { version = "0.2.0", features = [
+objc2-web-kit = { version = "0.2.2", features = [
   "objc2-app-kit",
   "block2",
   "WKWebView",
@@ -120,7 +120,7 @@ objc2-web-kit = { version = "0.2.0", features = [
   "WKNavigationResponse",
   "WKUserScript",
 ] }
-objc2-foundation = { version = "0.2.0", features = [
+objc2-foundation = { version = "0.2.2", features = [
   "NSURLRequest",
   "NSURL",
   "NSString",
@@ -150,7 +150,7 @@ objc2-ui-kit = { version = "0.2.2", features = [
 ] }
 
 [target."cfg(target_os = \"macos\")".dependencies]
-objc2-app-kit = { version = "0.2.0", features = [
+objc2-app-kit = { version = "0.2.2", features = [
   "NSApplication",
   "NSEvent",
   "NSWindow",
@@ -165,7 +165,7 @@ objc2-app-kit = { version = "0.2.0", features = [
 
 [target."cfg(target_os = \"android\")".dependencies]
 crossbeam-channel = "0.5"
-html5ever = "0.26"
+html5ever = "0.29"
 kuchiki = { package = "kuchikiki", version = "0.8" }
 sha2 = "0.10"
 base64 = "0.22"
@@ -176,9 +176,9 @@ libc = "0.2"
 
 [dev-dependencies]
 pollster = "0.3.0"
-tao = "0.29"
-wgpu = "0.19"
-winit = "0.29"
+tao = "0.30"
+wgpu = "22.1"
+winit = "0.30"
 getrandom = "0.2"
 http-range = "0.1"
 percent-encoding = "2.3"
