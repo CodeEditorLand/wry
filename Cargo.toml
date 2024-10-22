@@ -2,7 +2,7 @@ workspace = {}
 
 [package]
 name = "wry"
-version = "0.46.2"
+version = "0.46.3"
 authors = ["Tauri Programme within The Commons Conservancy"]
 edition = "2021"
 license = "Apache-2.0 OR MIT"
@@ -53,6 +53,7 @@ thiserror = "1.0"
 http = "1.1"
 raw-window-handle = { version = "0.6", features = ["std"] }
 dpi = "0.1"
+cookie = "0.18"
 
 [target."cfg(any(target_os = \"linux\", target_os = \"dragonfly\", target_os = \"freebsd\", target_os = \"openbsd\", target_os = \"netbsd\"))".dependencies]
 javascriptcore-rs = { version = "1.1.2", features = ["v2_28"], optional = true }
@@ -91,50 +92,53 @@ features = [
 ]
 
 [target."cfg(any(target_os = \"ios\", target_os = \"macos\"))".dependencies]
+url = "2.5"
 block2 = "0.5"
 objc2 = { version = "0.5", features = ["exception"] }
-objc2-web-kit = { version = "0.2.2", features = [
-	"objc2-app-kit",
-	"block2",
-	"WKWebView",
-	"WKWebViewConfiguration",
-	"WKWebsiteDataStore",
-	"WKDownload",
-	"WKDownloadDelegate",
-	"WKNavigation",
-	"WKNavigationDelegate",
-	"WKUserContentController",
-	"WKURLSchemeHandler",
-	"WKPreferences",
-	"WKURLSchemeTask",
-	"WKScriptMessageHandler",
-	"WKUIDelegate",
-	"WKOpenPanelParameters",
-	"WKFrameInfo",
-	"WKSecurityOrigin",
-	"WKScriptMessage",
-	"WKNavigationAction",
-	"WKWebpagePreferences",
-	"WKNavigationResponse",
-	"WKUserScript",
+objc2-web-kit = { version = "0.2.0", features = [
+  "objc2-app-kit",
+  "block2",
+  "WKWebView",
+  "WKWebViewConfiguration",
+  "WKWebsiteDataStore",
+  "WKDownload",
+  "WKDownloadDelegate",
+  "WKNavigation",
+  "WKNavigationDelegate",
+  "WKUserContentController",
+  "WKURLSchemeHandler",
+  "WKPreferences",
+  "WKURLSchemeTask",
+  "WKScriptMessageHandler",
+  "WKUIDelegate",
+  "WKOpenPanelParameters",
+  "WKFrameInfo",
+  "WKSecurityOrigin",
+  "WKScriptMessage",
+  "WKNavigationAction",
+  "WKWebpagePreferences",
+  "WKNavigationResponse",
+  "WKUserScript",
+  "WKHTTPCookieStore",
 ] }
-objc2-foundation = { version = "0.2.2", features = [
-	"NSURLRequest",
-	"NSURL",
-	"NSString",
-	"NSKeyValueCoding",
-	"NSStream",
-	"NSDictionary",
-	"NSObject",
-	"NSData",
-	"NSKeyValueObserving",
-	"NSThread",
-	"NSJSONSerialization",
-	"NSDate",
-	"NSBundle",
-	"NSProcessInfo",
-	"NSValue",
-	"NSRange",
+objc2-foundation = { version = "0.2.0", features = [
+  "NSURLRequest",
+  "NSURL",
+  "NSString",
+  "NSKeyValueCoding",
+  "NSStream",
+  "NSDictionary",
+  "NSObject",
+  "NSData",
+  "NSKeyValueObserving",
+  "NSThread",
+  "NSJSONSerialization",
+  "NSDate",
+  "NSBundle",
+  "NSProcessInfo",
+  "NSValue",
+  "NSRange",
+  "NSRunLoop",
 ] }
 
 [target."cfg(target_os = \"ios\")".dependencies]
