@@ -177,7 +177,7 @@ tao-macros = "0.1"
 libc = "0.2"
 
 [dev-dependencies]
-pollster = "0.3.0"
+pollster = "0.4.0"
 tao = "0.30"
 wgpu = "22.1"
 winit = "0.30"
