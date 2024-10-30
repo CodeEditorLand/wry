@@ -357,15 +357,19 @@ pub struct WebViewAttributes<'a> {
   /// - **Windows:** the string can not be larger than 2 MB (2 * 1024 * 1024 bytes) in total size
   pub html: Option<String>,
 
-  /// Initialize javascript code when loading new pages. When webview load a new page, this
-  /// initialization code will be executed. It is guaranteed that code is executed before
-  /// `window.onload`.
+  /// A list of initialization javascript scripts to run when loading new pages.
+  /// When webview load a new page, this initialization code will be executed.
+  /// It is guaranteed that code is executed before `window.onload`.
+  ///
+  /// Second parameter represents if script should be added to main frame only or sub frames also.
+  /// `true` for main frame only, `false` for sub frames.
   ///
   /// ## Platform-specific
   ///
+  /// - **Windows**: scripts are injected into sub frames.
   /// - **Android:** The Android WebView does not provide an API for initialization scripts,
   /// so we prepend them to each HTML head. They are only implemented on custom protocol URLs.
-  pub initialization_scripts: Vec<String>,
+  pub initialization_scripts: Vec<(String, bool)>,
 
   /// A list of custom loading protocols with pairs of scheme uri string and a handling
   /// closure.
@@ -693,6 +697,7 @@ impl<'a> WebViewBuilder<'a> {
   ///
   /// ## Platform-specific
   ///
+  /// - **Windows:** scripts are added to subframes as well.
   /// - **Android:** When [addDocumentStartJavaScript] is not supported,
   /// we prepend them to each HTML head (implementation only supported on custom protocol URLs).
   /// For remote URLs, we use [onPageStarted] which is not guaranteed to run before other scripts.
@@ -700,9 +705,20 @@ impl<'a> WebViewBuilder<'a> {
   /// [addDocumentStartJavaScript]: https://developer.android.com/reference/androidx/webkit/WebViewCompat#addDocumentStartJavaScript(android.webkit.WebView,java.lang.String,java.util.Set%3Cjava.lang.String%3E)
   /// [onPageStarted]: https://developer.android.com/reference/android/webkit/WebViewClient#onPageStarted(android.webkit.WebView,%20java.lang.String,%20android.graphics.Bitmap)
   pub fn with_initialization_script(self, js: &str) -> Self {
+    self.with_initialization_script_for_main_only(js, true)
+  }
+
+  /// Same as [`with_initialization_script`](Self::with_initialization_script) but with option to inject into main frame only or sub frames.
+  ///
+  /// ## Platform-specific:
+  ///
+  /// - **Windows:** scripts are always added to subframes regardless of the option.
+  pub fn with_initialization_script_for_main_only(self, js: &str, main_only: bool) -> Self {
     self.and_then(|mut b| {
       if !js.is_empty() {
-        b.attrs.initialization_scripts.push(js.to_string());
+        b.attrs
+          .initialization_scripts
+          .push((js.to_string(), main_only));
       }
       Ok(b)
     })
@@ -1186,6 +1202,7 @@ pub(crate) struct PlatformSpecificWebViewAttributes {
   use_https: bool,
   scroll_bar_style: ScrollBarStyle,
   browser_extensions_enabled: bool,
+  extension_path: Option<PathBuf>,
 }
 
 #[cfg(windows)]
@@ -1198,6 +1215,7 @@ impl Default for PlatformSpecificWebViewAttributes {
       use_https: false, // To match macOS & Linux behavior in the context of mixed content.
       scroll_bar_style: ScrollBarStyle::default(),
       browser_extensions_enabled: false,
+      extension_path: None,
     }
   }
 }
@@ -1257,6 +1275,11 @@ pub trait WebViewBuilderExtWindows {
   /// Requires WebView2 Runtime version 1.0.2210.55 or higher, does nothing on older versions,
   /// see https://learn.microsoft.com/en-us/microsoft-edge/webview2/release-notes/archive?tabs=dotnetcsharp#10221055
   fn with_browser_extensions_enabled(self, enabled: bool) -> Self;
+
+  /// Set the path from which to load extensions from. Extensions stored in this path should be unpacked.
+  ///
+  /// Does nothing if browser extensions are disabled. See [`with_browser_extensions_enabled`](Self::with_browser_extensions_enabled)
+  fn with_extension_path(self, path: impl Into<PathBuf>) -> Self;
 }
 
 #[cfg(windows)]
@@ -1299,6 +1322,13 @@ impl WebViewBuilderExtWindows for WebViewBuilder<'_> {
   fn with_browser_extensions_enabled(self, enabled: bool) -> Self {
     self.and_then(|mut b| {
       b.platform_specific.browser_extensions_enabled = enabled;
+      Ok(b)
+    })
+  }
+
+  fn with_extension_path(self, path: impl Into<PathBuf>) -> Self {
+    self.and_then(|mut b| {
+      b.platform_specific.extension_path = Some(path.into());
       Ok(b)
     })
   }
@@ -1388,6 +1418,18 @@ impl WebViewBuilderExtAndroid for WebViewBuilder<'_> {
   target_os = "netbsd",
   target_os = "openbsd",
 ))]
+#[derive(Default)]
+pub(crate) struct PlatformSpecificWebViewAttributes {
+  extension_path: Option<PathBuf>,
+}
+
+#[cfg(any(
+  target_os = "linux",
+  target_os = "dragonfly",
+  target_os = "freebsd",
+  target_os = "netbsd",
+  target_os = "openbsd",
+))]
 pub trait WebViewBuilderExtUnix<'a> {
   /// Consume the builder and create the webview inside a GTK container widget, such as GTK window.
   ///
@@ -1402,6 +1444,9 @@ pub trait WebViewBuilderExtUnix<'a> {
   fn build_gtk<W>(self, widget: &'a W) -> Result<WebView>
   where
     W: gtk::prelude::IsA<gtk::Container>;
+
+  /// Set the path from which to load extensions from.
+  fn with_extension_path(self, path: impl Into<PathBuf>) -> Self;
 }
 
 #[cfg(any(
@@ -1420,6 +1465,13 @@ impl<'a> WebViewBuilderExtUnix<'a> for WebViewBuilder<'a> {
 
     InnerWebView::new_gtk(widget, parts.attrs, parts.platform_specific)
       .map(|webview| WebView { webview })
+  }
+
+  fn with_extension_path(self, path: impl Into<PathBuf>) -> Self {
+    self.and_then(|mut b| {
+      b.platform_specific.extension_path = Some(path.into());
+      Ok(b)
+    })
   }
 }
 
@@ -1878,16 +1930,6 @@ pub enum PageLoadEvent {
   /// Indicates that the page content has finished loading
   Finished,
 }
-
-#[cfg(any(
-  target_os = "linux",
-  target_os = "dragonfly",
-  target_os = "freebsd",
-  target_os = "netbsd",
-  target_os = "openbsd",
-))]
-#[derive(Default)]
-pub(crate) struct PlatformSpecificWebViewAttributes;
 
 #[cfg(test)]
 mod tests {

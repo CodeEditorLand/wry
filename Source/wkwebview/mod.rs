@@ -480,9 +480,10 @@ impl InnerWebView {
 r#"Object.defineProperty(window, 'ipc', {
   value: Object.freeze({postMessage: function(s) {window.webkit.messageHandlers.ipc.postMessage(s);}})
 });"#,
+      true
       );
-      for js in attributes.initialization_scripts {
-        w.init(&js);
+      for (js, for_main_only) in attributes.initialization_scripts {
+        w.init(&js, for_main_only);
       }
 
       // Set user agent
@@ -602,16 +603,15 @@ r#"Object.defineProperty(window, 'ipc', {
     Ok(())
   }
 
-  fn init(&self, js: &str) {
+  fn init(&self, js: &str, for_main_only: bool) {
     // Safety: objc runtime calls are unsafe
     unsafe {
       let userscript = WKUserScript::alloc();
-      // TODO: feature to allow injecting into subframes
       let script = WKUserScript::initWithSource_injectionTime_forMainFrameOnly(
         userscript,
         &NSString::from_str(js),
         WKUserScriptInjectionTime::AtDocumentStart,
-        true,
+        for_main_only,
       );
       self.manager.addUserScript(&script);
     }

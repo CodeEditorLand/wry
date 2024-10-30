@@ -6,7 +6,8 @@ mod drag_drop;
 mod util;
 
 use std::{
-  borrow::Cow, cell::RefCell, collections::HashSet, fmt::Write, path::PathBuf, rc::Rc, sync::mpsc,
+  borrow::Cow, cell::RefCell, collections::HashSet, fmt::Write, fs, path::PathBuf, rc::Rc,
+  sync::mpsc,
 };
 
 use dpi::{PhysicalPosition, PhysicalSize};
@@ -439,9 +440,9 @@ impl InnerWebView {
       };
     }
 
-    // Initialize scripts
-    for js in attributes.initialization_scripts {
-      Self::add_script_to_execute_on_document_created(&webview, js)?;
+    // Initialize main frame scripts
+    for (js, for_main_only) in attributes.initialization_scripts {
+      Self::add_script_to_execute_on_document_created(&webview, js, for_main_only)?;
     }
 
     // Enable clipboard
@@ -496,6 +497,15 @@ impl InnerWebView {
 
       if attributes.focused {
         controller.MoveFocus(COREWEBVIEW2_MOVE_FOCUS_REASON_PROGRAMMATIC)?;
+      }
+    }
+
+    // Extension loading
+    if pl_attrs.browser_extensions_enabled {
+      if let Some(extension_path) = pl_attrs.extension_path {
+        unsafe {
+          Self::load_extensions(&webview, &extension_path)?;
+        }
       }
     }
 
@@ -579,6 +589,8 @@ impl InnerWebView {
     if let Some(on_page_load_handler) = attributes.on_page_load_handler.take() {
       let on_page_load_handler = Rc::new(on_page_load_handler);
       let on_page_load_handler_ = on_page_load_handler.clone();
+      let scripts = attributes.initialization_scripts.clone();
+
       webview.add_ContentLoading(
         &ContentLoadingEventHandler::create(Box::new(move |webview, _| {
           let Some(webview) = webview else {
@@ -586,6 +598,12 @@ impl InnerWebView {
           };
 
           on_page_load_handler_(PageLoadEvent::Started, Self::url_from_webview(&webview)?);
+
+          for (script, inject_into_sub_frames) in &scripts {
+            if *inject_into_sub_frames {
+              Self::execute_script(&webview, script.clone(), |_| ())?;
+            }
+          }
 
           Ok(())
         })),
@@ -747,6 +765,7 @@ impl InnerWebView {
       String::from(
         r#"Object.defineProperty(window, 'ipc', { value: Object.freeze({ postMessage: s=> window.chrome.webview.postMessage(s) }) });"#,
       ),
+      true,
     )?;
 
     let ipc_handler = attributes.ipc_handler.take();
@@ -1130,9 +1149,12 @@ impl InnerWebView {
     );
   }
 
-  // TODO: feature to allow injecting into (specific) subframes
   #[inline]
-  fn add_script_to_execute_on_document_created(webview: &ICoreWebView2, js: String) -> Result<()> {
+  fn add_script_to_execute_on_document_created(
+    webview: &ICoreWebView2,
+    js: String,
+    _for_main_only: bool,
+  ) -> Result<()> {
     let webview = webview.clone();
     AddScriptToExecuteOnDocumentCreatedCompletedHandler::wait_for_async_operation(
       Box::new(move |handler| unsafe {
@@ -1173,6 +1195,24 @@ impl InnerWebView {
     let mut pwstr = PWSTR::null();
     unsafe { webview.Source(&mut pwstr)? };
     Ok(take_pwstr(pwstr))
+  }
+
+  #[inline]
+  unsafe fn load_extensions(webview: &ICoreWebView2, extension_path: &PathBuf) -> Result<()> {
+    let profile = webview
+      .cast::<ICoreWebView2_13>()?
+      .Profile()?
+      .cast::<ICoreWebView2Profile7>()?;
+
+    // Iterate over all folders in the extension path
+    for entry in fs::read_dir(extension_path)? {
+      let path = entry?.path();
+      let path_hs = HSTRING::from(path.as_path());
+
+      profile.AddBrowserExtension(&path_hs, None)?;
+    }
+
+    Ok(())
   }
 }
 

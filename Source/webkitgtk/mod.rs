@@ -209,7 +209,7 @@ impl InnerWebView {
   pub fn new_gtk<W>(
     container: &W,
     mut attributes: WebViewAttributes,
-    _pl_attrs: super::PlatformSpecificWebViewAttributes,
+    pl_attrs: super::PlatformSpecificWebViewAttributes,
   ) -> Result<Self>
   where
     W: IsA<gtk::Container>,
@@ -240,6 +240,11 @@ impl InnerWebView {
         website_data_manager
           .set_network_proxy_settings(NetworkProxyMode::Custom, Some(&mut settings));
       }
+    }
+
+    // Extension loading
+    if let Some(extension_path) = pl_attrs.extension_path {
+      web_context.os.set_web_extensions_directory(&extension_path);
     }
 
     let webview = Self::create_webview(web_context, &attributes);
@@ -299,11 +304,11 @@ impl InnerWebView {
     };
 
     // Initialize message handler
-    w.init("Object.defineProperty(window, 'ipc', { value: Object.freeze({ postMessage: function(x) { window.webkit.messageHandlers['ipc'].postMessage(x) } }) })")?;
+    w.init("Object.defineProperty(window, 'ipc', { value: Object.freeze({ postMessage: function(x) { window.webkit.messageHandlers['ipc'].postMessage(x) } }) })", true)?;
 
     // Initialize scripts
-    for js in attributes.initialization_scripts {
-      w.init(&js)?;
+    for (js, for_main_only) in attributes.initialization_scripts {
+      w.init(&js, for_main_only)?;
     }
 
     // Run pending webview.eval() scripts once webview loads.
@@ -609,12 +614,15 @@ impl InnerWebView {
     Ok(())
   }
 
-  fn init(&self, js: &str) -> Result<()> {
+  fn init(&self, js: &str, for_main_only: bool) -> Result<()> {
     if let Some(manager) = self.webview.user_content_manager() {
       let script = UserScript::new(
         js,
-        // TODO: feature to allow injecting into subframes
-        UserContentInjectedFrames::TopFrame,
+        if for_main_only {
+          UserContentInjectedFrames::TopFrame
+        } else {
+          UserContentInjectedFrames::AllFrames
+        },
         UserScriptInjectionTime::Start,
         &[],
         &[],

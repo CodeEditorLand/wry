@@ -92,6 +92,12 @@ impl WebContextImpl {
     self.automation = flag;
     self.context.set_automation_allowed(flag);
   }
+
+  pub fn set_web_extensions_directory(&mut self, path: &Path) {
+    self
+      .context
+      .set_web_extensions_directory(&path.to_string_lossy());
+  }
 }
 
 /// [`WebContext`](super::WebContext) items that only matter on unix.
