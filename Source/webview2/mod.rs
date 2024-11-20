@@ -1252,8 +1252,9 @@ impl InnerWebView {
     for entry in fs::read_dir(extension_path)? {
       let path = entry?.path();
       let path_hs = HSTRING::from(path.as_path());
+      let handler = ProfileAddBrowserExtensionCompletedHandler::create(Box::new(|_, _| Ok(())));
 
-      profile.AddBrowserExtension(&path_hs, None)?;
+      profile.AddBrowserExtension(&path_hs, &handler)?;
     }
 
     Ok(())

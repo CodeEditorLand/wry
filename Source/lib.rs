@@ -1302,7 +1302,7 @@ pub trait WebViewBuilderExtWindows {
   /// Set the path from which to load extensions from. Extensions stored in this path should be unpacked.
   ///
   /// Does nothing if browser extensions are disabled. See [`with_browser_extensions_enabled`](Self::with_browser_extensions_enabled)
-  fn with_extension_path(self, path: impl Into<PathBuf>) -> Self;
+  fn with_extensions_path(self, path: impl Into<PathBuf>) -> Self;
 }
 
 #[cfg(windows)]
@@ -1349,7 +1349,7 @@ impl WebViewBuilderExtWindows for WebViewBuilder<'_> {
     })
   }
 
-  fn with_extension_path(self, path: impl Into<PathBuf>) -> Self {
+  fn with_extensions_path(self, path: impl Into<PathBuf>) -> Self {
     self.and_then(|mut b| {
       b.platform_specific.extension_path = Some(path.into());
       Ok(b)
@@ -1469,7 +1469,7 @@ pub trait WebViewBuilderExtUnix<'a> {
     W: gtk::prelude::IsA<gtk::Container>;
 
   /// Set the path from which to load extensions from.
-  fn with_extension_path(self, path: impl Into<PathBuf>) -> Self;
+  fn with_extensions_path(self, path: impl Into<PathBuf>) -> Self;
 }
 
 #[cfg(any(
@@ -1490,7 +1490,7 @@ impl<'a> WebViewBuilderExtUnix<'a> for WebViewBuilder<'a> {
       .map(|webview| WebView { webview })
   }
 
-  fn with_extension_path(self, path: impl Into<PathBuf>) -> Self {
+  fn with_extensions_path(self, path: impl Into<PathBuf>) -> Self {
     self.and_then(|mut b| {
       b.platform_specific.extension_path = Some(path.into());
       Ok(b)
