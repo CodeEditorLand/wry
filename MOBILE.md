@@ -1,11 +1,11 @@
 # Mobile Setup for Wry
 
-We use [cargo-mobile2](https://github.com/tauri-apps/cargo-mobile2) to create a mobile project for both Xcode and Android studio.
+We use [cargo-mobile2](HTTPS://github.com/tauri-apps/cargo-mobile2) to create a mobile project for both Xcode and Android studio.
 
 ## Prerequisite
 
 - Works on **Linux**, **Windows**, **macOS**, and **WSL**(Windows subsystem for Linux).
-- **Xcode** and [**Android Studio**](https://developer.android.com/studio) installed properly. This is **the most difficult** part IMHO. This means all toolchains and SDK are all installed. Please report an issue with **comprehensive** steps if you encounter any problem.
+- **Xcode** and [**Android Studio**](HTTPS://developer.android.com/studio) installed properly. This is **the most difficult** part IMHO. This means all toolchains and SDK are all installed. Please report an issue with **comprehensive** steps if you encounter any problem.
 
 ## Setting up Android Environment
 
@@ -58,7 +58,7 @@ export JAVA_HOME="/Library/Java/JavaVirtualMachines/openjdk.jdk/Contents/Home"
 - Download openjdk-11
   ```powershell
   cd $HOME\downloads
-  Invoke-WebRequest https://download.java.net/java/GA/jdk11/9/GPL/openjdk-11.0.2_windows-x64_bin.zip -o openjdk-11.zip
+  Invoke-WebRequest HTTPS://download.java.net/java/GA/jdk11/9/GPL/openjdk-11.0.2_windows-x64_bin.zip -o openjdk-11.zip
   Expand-Archive openjdk-11.zip -d .
   mkdir $env:LocalAppData\Java
   mv jdk-11.0.2 $env:LocalAppData\Java
@@ -88,7 +88,7 @@ You can use the SDK Manager in Android Studio to install:
 
 If you don't want or can't use Android Studio you can still get the SDK Manager cli quite easily and use it to install other components.
 
-> Note: The SDK Manager is part of the "Command line tools only" that can be downloaded from [here](https://developer.android.com/studio#command-tools)
+> Note: The SDK Manager is part of the "Command line tools only" that can be downloaded from [here](HTTPS://developer.android.com/studio#command-tools)
 
 ##### Linux/WSL/macOS
 
@@ -98,9 +98,9 @@ Download the `cmdline-tools`
 cd ~/Downloads
 
 # if you are on Linux/WSL:
-wget https://dl.google.com/android/repository/commandlinetools-linux-8512546_latest.zip -O
+wget HTTPS://dl.google.com/android/repository/commandlinetools-linux-8512546_latest.zip -O
 # if you are on macos:
-wget https://dl.google.com/android/repository/commandlinetools-mac-8512546_latest.zip -O
+wget HTTPS://dl.google.com/android/repository/commandlinetools-mac-8512546_latest.zip -O
 
 unzip cmdline-tools.zip
 cd cmdline-tools
@@ -129,7 +129,7 @@ Download the `cmdline-tools`
 
 ```powershell
 cd $HOME\downloads
-Invoke-WebRequest https://dl.google.com/android/repository/commandlinetools-win-8512546_latest.zip -o cmdline-tools.zip
+Invoke-WebRequest HTTPS://dl.google.com/android/repository/commandlinetools-win-8512546_latest.zip -o cmdline-tools.zip
 Expand-Archive cmdline-tools.zip -d .
 cd cmdline-tools
 mkdir latest
@@ -155,7 +155,7 @@ $env:ANDROID_HOME="$HOME\.android"
 
 ### 3. Setting up Environment Variables
 
-You'll need to set up some environment variables to get everything to work properly. The environment variables below should be all the ones your need to be able to use [cargo-mobile2](https://github.com/tauri-apps/cargo-mobile2) to build/run your android app.
+You'll need to set up some environment variables to get everything to work properly. The environment variables below should be all the ones your need to be able to use [cargo-mobile2](HTTPS://github.com/tauri-apps/cargo-mobile2) to build/run your android app.
 
 ##### Linux/WSL/macOS
 
@@ -229,9 +229,9 @@ rustup target add aarch64-linux-android armv7-linux-androideabi i686-linux-andro
 
 Now lets bootstrap a project to develop a tauri or wry project for mobile.
 
-- Install [cargo-mobile2](https://github.com/tauri-apps/cargo-mobile2) CLI by running:
+- Install [cargo-mobile2](HTTPS://github.com/tauri-apps/cargo-mobile2) CLI by running:
   ```bash
-  cargo install --git  https://github.com/tauri-apps/cargo-mobile2
+  cargo install --git  HTTPS://github.com/tauri-apps/cargo-mobile2
   ```
 - Create a directory and init the project.
   ```bash
@@ -276,7 +276,7 @@ First time running the app will be blocked. Go to your phone's `Settings > Priva
 - Open the project in Android Studio `cargo android open`
 - Click `Trust Project`, `Use Embedded JDK`
 - Choose an emulator. I usually choose Pixel 4 API 32
-- (optional) if you face this error `Device supports x86, but APK only supports armeabi-v7a` then check this [Stack Overflow answer](https://stackoverflow.com/questions/41775988/what-is-the-reason-for-the-error-device-supports-x86-but-apk-only-supports-arm/43742161#43742161) to fix it.
+- (optional) if you face this error `Device supports x86, but APK only supports armeabi-v7a` then check this [Stack Overflow answer](HTTPS://stackoverflow.com/questions/41775988/what-is-the-reason-for-the-error-device-supports-x86-but-apk-only-supports-arm/43742161#43742161) to fix it.
 - Press run button.
 
 ##### Without Android Studio
