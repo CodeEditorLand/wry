@@ -37,7 +37,9 @@ pub struct WebContextImpl {
 impl WebContextImpl {
   pub fn new(data_directory: Option<&Path>) -> Self {
     use webkit2gtk::{CookieManagerExt, WebsiteDataManager, WebsiteDataManagerExt};
+
     let mut context_builder = WebContext::builder();
+
     if let Some(data_directory) = data_directory {
       let data_manager = WebsiteDataManager::builder()
         .base_data_directory(data_directory.to_string_lossy())
@@ -50,6 +52,7 @@ impl WebContextImpl {
       }
       context_builder = context_builder.website_data_manager(&data_manager);
     }
+
     let context = context_builder.build();
 
     Self::create_context(context)
@@ -63,11 +66,14 @@ impl WebContextImpl {
 
   pub fn create_context(context: WebContext) -> Self {
     let automation = false;
+
     context.set_automation_allowed(automation);
 
     // e.g. wry 0.9.4
     let app_info = ApplicationInfo::new();
+
     app_info.set_name(env!("CARGO_PKG_NAME"));
+
     app_info.set_version(
       env!("CARGO_PKG_VERSION_MAJOR")
         .parse()
@@ -90,6 +96,7 @@ impl WebContextImpl {
 
   pub fn set_allows_automation(&mut self, flag: bool) {
     self.automation = flag;
+
     self.context.set_automation_allowed(flag);
   }
 
@@ -221,11 +228,13 @@ impl WebContextExt for super::WebContext {
               glib::UriError::Failed,
               "Internal server error: could not create request.",
             ));
+
             return;
           }
         };
 
         let request_ = MainThreadRequest(request.clone());
+
         let responder: Box<dyn FnOnce(HttpResponse<Cow<'static, [u8]>>)> =
           Box::new(move |http_response| {
             MainContext::default().invoke(move || {
@@ -289,6 +298,7 @@ impl WebContextExt for super::WebContext {
     if let (true, Some(app_info)) = (self.os.automation, self.os.app_info.take()) {
       self.os.context.connect_automation_started(move |_, auto| {
         let webview = webview.clone();
+
         auto.set_application_info(&app_info);
 
         // We do **NOT** support arbitrarily creating new webviews.
@@ -311,11 +321,13 @@ impl WebContextExt for super::WebContext {
     let context = &self.os.context;
 
     let download_started_handler = RefCell::new(download_started_handler);
+
     let failed = Rc::new(RefCell::new(false));
 
     context.connect_download_started(move |_context, download| {
       if let Some(uri) = download.request().and_then(|req| req.uri()) {
         let uri = uri.to_string();
+
         let mut download_location = download
           .destination()
           .map(PathBuf::from)
@@ -334,6 +346,7 @@ impl WebContextExt for super::WebContext {
 
       download.connect_failed({
         let failed = failed.clone();
+
         move |_, _error| {
           *failed.borrow_mut() = true;
         }
@@ -427,6 +440,7 @@ impl WebViewUriLoader {
   /// Add a [`WebView`] to the queue.
   fn push(&self, webview: WebView, uri: String, headers: Option<http::HeaderMap>) {
     let mut queue = self.queue.lock().expect("poisoned load queue");
+
     queue.push_back(WebviewUriRequest {
       webview,
       uri,
@@ -437,6 +451,7 @@ impl WebViewUriLoader {
   /// Remove a [`WebView`] from the queue and return it.
   fn pop(&self) -> Option<WebviewUriRequest> {
     let mut queue = self.queue.lock().expect("poisoned load queue");
+
     queue.pop_front()
   }
 
@@ -453,6 +468,7 @@ impl WebViewUriLoader {
         webview.connect_load_changed(move |_, event| {
           if let LoadEvent::Finished = event {
             self.unlock();
+
             self.clone().flush();
           };
         });

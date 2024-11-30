@@ -68,11 +68,13 @@ pub unsafe fn hwnd_dpi(hwnd: HWND) -> u32 {
   } else if let Some(GetDpiForMonitor) = *GET_DPI_FOR_MONITOR {
     // We are on Windows 8.1 or later.
     let monitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
+
     if monitor.is_invalid() {
       return BASE_DPI;
     }
 
     let mut dpi_x = 0;
+
     let mut dpi_y = 0;
     #[allow(clippy::unnecessary_cast)]
     if GetDpiForMonitor(monitor, MDT_EFFECTIVE_DPI, &mut dpi_x, &mut dpi_y) == S_OK {
@@ -82,6 +84,7 @@ pub unsafe fn hwnd_dpi(hwnd: HWND) -> u32 {
     }
   } else {
     let hdc = GetDC(hwnd);
+
     if hdc.is_invalid() {
       return BASE_DPI;
     }

@@ -20,6 +20,7 @@ fn main() -> wry::Result<()> {
   #[cfg(target_os = "windows")]
   {
     use tao::platform::windows::WindowBuilderExtWindows;
+
     builder = builder.with_undecorated_shadow(false);
   }
   let window = builder.build(&event_loop).unwrap();
@@ -27,6 +28,7 @@ fn main() -> wry::Result<()> {
   #[cfg(target_os = "windows")]
   {
     use tao::platform::windows::WindowExtWindows;
+
     window.set_undecorated_shadow(true);
   }
 
@@ -61,8 +63,11 @@ fn main() -> wry::Result<()> {
   )))]
   let _webview = {
     use tao::platform::unix::WindowExtUnix;
+
     use wry::WebViewBuilderExtUnix;
+
     let vbox = window.default_vbox().unwrap();
+
     builder.build_gtk(vbox)?
   };
 

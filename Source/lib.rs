@@ -594,6 +594,7 @@ impl<'a> WebViewBuilder<'a> {
   /// Create a new [`WebViewBuilder`] with a web context that can be shared with multiple [`WebView`]s.
   pub fn with_web_context(web_context: &'a mut WebContext) -> Self {
     let mut attrs = WebViewAttributes::default();
+
     attrs.context = Some(web_context);
 
     Self {

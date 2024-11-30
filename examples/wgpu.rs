@@ -48,7 +48,9 @@ async fn run(event_loop: EventLoop<()>, window: Window) {
 @vertex
 fn vs_main(@builtin(vertex_index) in_vertex_index: u32) -> @builtin(position) vec4<f32> {
     let x = f32(i32(in_vertex_index) - 1);
+
     let y = f32(i32(in_vertex_index & 1u) * 2 - 1);
+
     return vec4<f32>(x, y, 0.0, 1.0);
 }
 
@@ -136,6 +138,7 @@ fn fs_main() -> @location(0) vec4<f32> {
           // On macos the window needs to be redrawn manually after resizing
           window.request_redraw();
         }
+
         Event::WindowEvent {
           event: WindowEvent::RedrawRequested,
           ..
@@ -163,13 +166,16 @@ fn fs_main() -> @location(0) vec4<f32> {
               timestamp_writes: None,
               occlusion_query_set: None,
             });
+
             rpass.set_pipeline(&render_pipeline);
+
             rpass.draw(0..3, 0..1);
           }
 
           queue.submit(Some(encoder.finish()));
           frame.present();
         }
+
         Event::WindowEvent {
           event: WindowEvent::CloseRequested,
           ..
@@ -203,6 +209,7 @@ fn main() {
     use gtk::prelude::DisplayExtManual;
 
     gtk::init().unwrap();
+
     if gtk::gdk::Display::default().unwrap().backend().is_wayland() {
       panic!("This example doesn't support wayland!");
     }

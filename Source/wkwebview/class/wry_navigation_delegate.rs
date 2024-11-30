@@ -45,7 +45,9 @@ declare_class!(
 
   unsafe impl ClassType for WryNavigationDelegate {
     type Super = NSObject;
+
     type Mutability = MainThreadOnly;
+
     const NAME: &'static str = "WryNavigationDelegate";
   }
 

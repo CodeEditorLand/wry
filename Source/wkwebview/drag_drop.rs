@@ -23,7 +23,9 @@ pub(crate) unsafe fn collect_paths(drag_info: &ProtocolObject<dyn NSDraggingInfo
 
   if pb.availableTypeFromArray(&types).is_some() {
     let paths = pb.propertyListForType(NSFilenamesPboardType).unwrap();
+
     let paths: Id<NSArray<NSString>> = Id::<AnyObject>::cast(paths.clone());
+
     for path in paths.to_vec() {
       let path = CStr::from_ptr(path.UTF8String()).to_string_lossy();
       drag_drop_paths.push(PathBuf::from(path.into_owned()));

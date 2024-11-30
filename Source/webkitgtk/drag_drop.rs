@@ -75,15 +75,20 @@ pub(crate) fn connect_drag_event(webview: &WebView, handler: Box<dyn Fn(DragDrop
 
   {
     let controller = controller.clone();
+
     webview.connect_drag_data_received(move |_, _, _, _, data, info, _| {
       if info == 2 {
         let uris = data.uris();
+
         let paths = uris.iter().map(path_buf_from_uri).collect::<Vec<_>>();
+
         controller.enter();
+
         controller.call(DragDropEvent::Enter {
           paths: paths.clone(),
           position: controller.position.get(),
         });
+
         controller.store_paths(paths);
       }
     });
@@ -91,6 +96,7 @@ pub(crate) fn connect_drag_event(webview: &WebView, handler: Box<dyn Fn(DragDrop
 
   {
     let controller = controller.clone();
+
     webview.connect_drag_motion(move |_, _, x, y, _| {
       if controller.state() == DragControllerState::Entered {
         controller.call(DragDropEvent::Over { position: (x, y) });
@@ -103,6 +109,7 @@ pub(crate) fn connect_drag_event(webview: &WebView, handler: Box<dyn Fn(DragDrop
 
   {
     let controller = controller.clone();
+
     webview.connect_drag_drop(move |_, ctx, x, y, time| {
       if controller.state() == DragControllerState::Leaving {
         if let Some(paths) = controller.take_paths() {

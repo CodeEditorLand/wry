@@ -18,7 +18,9 @@ declare_class!(
 
   unsafe impl ClassType for WryWebViewParent {
     type Super = NSView;
+
     type Mutability = MainThreadOnly;
+
     const NAME: &'static str = "WryWebViewParent";
   }
 
@@ -50,6 +52,7 @@ impl WryWebViewParent {
     let delegate = mtm
       .alloc::<WryWebViewParent>()
       .set_ivars(WryWebViewParentIvars {});
+
     unsafe { msg_send_id![super(delegate), init] }
   }
 }

@@ -30,19 +30,25 @@ use crate::{wkwebview::WEBVIEW_IDS, RequestAsyncResponder, WryWebView};
 pub fn create(name: &str) -> &AnyClass {
   unsafe {
     let scheme_name = format!("{}URLSchemeHandler", name);
+
     let cls = ClassBuilder::new(&scheme_name, NSObject::class());
+
     match cls {
       Some(mut cls) => {
         cls.add_ivar::<*mut c_void>("function");
+
         cls.add_ivar::<*mut c_char>("webview_id");
+
         cls.add_method(
           objc2::sel!(webView:startURLSchemeTask:),
           start_task as extern "C" fn(_, _, _, _),
         );
+
         cls.add_method(
           objc2::sel!(webView:stopURLSchemeTask:),
           stop_task as extern "C" fn(_, _, _, _),
         );
+
         cls.register()
       }
       None => AnyClass::get(&scheme_name).expect("Failed to get the class definition"),
@@ -66,14 +72,18 @@ extern "C" fn start_task(
     let task_uuid = webview.add_custom_task_key(task_key);
 
     let ivar = this.class().instance_variable("webview_id").unwrap();
+
     let webview_id_ptr: *mut c_char = *ivar.load(this);
+
     let webview_id = CStr::from_ptr(webview_id_ptr)
       .to_str()
       .ok()
       .unwrap_or_default();
 
     let ivar = this.class().instance_variable("function").unwrap();
+
     let function: &*mut c_void = ivar.load(this);
+
     if !function.is_null() {
       let function = &mut *(*function
         as *mut Box<dyn Fn(crate::WebViewId, Request<Vec<u8>>, RequestAsyncResponder)>);
@@ -99,7 +109,9 @@ extern "C" fn start_task(
       let body_stream = request.HTTPBodyStream();
       if let Some(body) = body {
         let length = body.length();
+
         let data_bytes = body.bytes();
+
         sent_form_body = slice::from_raw_parts(data_bytes.as_ptr(), length).to_vec();
       } else if let Some(body_stream) = body_stream {
         body_stream.open();
@@ -130,6 +142,7 @@ extern "C" fn start_task(
 
       let respond_with_404 = || {
         let urlresponse = NSHTTPURLResponse::alloc();
+
         let response = NSHTTPURLResponse::initWithURL_statusCode_HTTPVersion_headerFields(
           urlresponse,
           &url,
@@ -140,6 +153,7 @@ extern "C" fn start_task(
           None,
         )
         .unwrap();
+
         task.didReceiveResponse(&response);
         // Finish
         task.didFinish();
@@ -154,6 +168,7 @@ extern "C" fn start_task(
                 if !WEBVIEW_IDS.lock().unwrap().contains(webview_id) {
                   return Err(crate::Error::CustomProtocolTaskInvalid);
                 }
+
                 Ok(())
               }
               /// Task may not live longer than async custom protocol handler.
@@ -168,6 +183,7 @@ extern "C" fn start_task(
                 current_uuid: Retained<NSUUID>,
               ) -> crate::Result<()> {
                 let latest_task_uuid = webview.get_custom_task_uuid(task_key);
+
                 if let Some(latest_uuid) = latest_task_uuid {
                   if latest_uuid != current_uuid {
                     return Err(crate::Error::CustomProtocolTaskInvalid);
@@ -175,6 +191,7 @@ extern "C" fn start_task(
                 } else {
                   return Err(crate::Error::CustomProtocolTaskInvalid);
                 }
+
                 Ok(())
               }
 
@@ -207,6 +224,7 @@ extern "C" fn start_task(
                     NSString::from_str(mime.to_str().unwrap()),
                   );
                 }
+
                 headers.insert_id(
                   NSString::from_str(CONTENT_LENGTH.as_str()).as_ref(),
                   NSString::from_str(&content.len().to_string()),
@@ -223,6 +241,7 @@ extern "C" fn start_task(
                 }
 
                 let urlresponse = NSHTTPURLResponse::alloc();
+
                 let response = NSHTTPURLResponse::initWithURL_statusCode_HTTPVersion_headerFields(
                   urlresponse,
                   &url,
@@ -233,6 +252,7 @@ extern "C" fn start_task(
                 .unwrap();
 
                 check_webview_id_valid(webview_id)?;
+
                 check_task_is_valid(&*webview, task_key, task_uuid.clone())?;
 
                 objc2::exception::catch(AssertUnwindSafe(|| {
@@ -242,12 +262,16 @@ extern "C" fn start_task(
 
                 // Send data
                 let bytes = content.as_ptr() as *mut c_void;
+
                 let data = NSData::alloc();
                 // MIGRATE NOTE: we copied the content to the NSData because content will be freed
                 // when out of scope but NSData will also free the content when it's done and cause doube free.
                 let data = NSData::initWithBytes_length(data, bytes, content.len());
+
                 check_webview_id_valid(webview_id)?;
+
                 check_task_is_valid(&*webview, task_key, task_uuid.clone())?;
+
                 objc2::exception::catch(AssertUnwindSafe(|| {
                   task.didReceiveData(&data);
                 }))
@@ -255,13 +279,16 @@ extern "C" fn start_task(
 
                 // Finish
                 check_webview_id_valid(webview_id)?;
+
                 check_task_is_valid(&*webview, task_key, task_uuid.clone())?;
+
                 objc2::exception::catch(AssertUnwindSafe(|| {
                   task.didFinish();
                 }))
                 .unwrap();
 
                 webview.remove_custom_task_key(task_key);
+
                 Ok(())
               }
 
@@ -284,6 +311,7 @@ extern "C" fn start_task(
             RequestAsyncResponder { responder },
           );
         }
+
         Err(_) => respond_with_404(),
       };
     } else {

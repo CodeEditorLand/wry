@@ -55,6 +55,7 @@ impl DragDropController {
       let lparam = LPARAM(closure_pointer_pointer as _);
       unsafe extern "system" fn enumerate_callback(hwnd: HWND, lparam: LPARAM) -> BOOL {
         let closure = &mut *(lparam.0 as *mut c_void as *mut &mut dyn FnMut(HWND) -> bool);
+
         closure(hwnd).into()
       }
       let _ = unsafe { EnumChildWindows(hwnd, Some(enumerate_callback), lparam) };
@@ -66,6 +67,7 @@ impl DragDropController {
   #[inline]
   fn inject_in_hwnd(&mut self, hwnd: HWND, handler: Rc<dyn Fn(DragDropEvent) -> bool>) -> bool {
     let drag_drop_target: IDropTarget = DragDropTarget::new(hwnd, handler).into();
+
     if unsafe { RevokeDragDrop(hwnd) } != Err(DRAGDROP_E_INVALIDHWND.into())
       && unsafe { RegisterDragDrop(hwnd, &drag_drop_target) }.is_ok()
     {
@@ -144,9 +146,11 @@ impl DragDropTarget {
               // In this case it is OK to return without taking further action.
               "Error occurred while processing dropped/hovered item: item is not a file."
             }
+
             _ => "Unexpected error occurred while processing dropped/hovered item.",
           }
         );
+
         None
       }
     }
@@ -163,9 +167,11 @@ impl IDropTarget_Impl for DragDropTarget_Impl {
     pdwEffect: *mut DROPEFFECT,
   ) -> windows::core::Result<()> {
     let mut pt = POINT { x: pt.x, y: pt.y };
+
     let _ = unsafe { ScreenToClient(self.hwnd, &mut pt) };
 
     let mut paths = Vec::new();
+
     let hdrop = unsafe { DragDropTarget::iterate_filenames(pDataObj, |path| paths.push(path)) };
 
     let enter_is_valid = hdrop.is_some();
@@ -212,6 +218,7 @@ impl IDropTarget_Impl for DragDropTarget_Impl {
     }
 
     unsafe { *pdwEffect = *self.cursor_effect.get() };
+
     Ok(())
   }
 
@@ -219,6 +226,7 @@ impl IDropTarget_Impl for DragDropTarget_Impl {
     if unsafe { *self.enter_is_valid.get() } {
       (self.listener)(DragDropEvent::Leave);
     }
+
     Ok(())
   }
 

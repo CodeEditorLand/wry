@@ -38,6 +38,7 @@ fn main() -> wry::Result<()> {
         ..
       } => {
         webviews.remove(&window_id);
+
         if webviews.is_empty() {
           *control_flow = ControlFlow::Exit
         }
@@ -48,10 +49,12 @@ fn main() -> wry::Result<()> {
           event_loop,
           proxy.clone(),
         );
+
         webviews.insert(new_window.0.id(), (new_window.0, new_window.1));
       }
       Event::UserEvent(UserEvent::CloseWindow(id)) => {
         webviews.remove(&id);
+
         if webviews.is_empty() {
           *control_flow = ControlFlow::Exit
         }
@@ -77,6 +80,7 @@ fn create_new_window(
   let window_id = window.id();
   let handler = move |req: Request<String>| {
     let body = req.body();
+
     match body.as_str() {
       "new-window" => {
         let _ = proxy.send_event(UserEvent::NewWindow);
@@ -86,6 +90,7 @@ fn create_new_window(
       }
       _ if body.starts_with("change-title") => {
         let title = body.replace("change-title:", "");
+
         let _ = proxy.send_event(UserEvent::NewTitle(window_id, title));
       }
       _ => {}
@@ -117,8 +122,11 @@ fn create_new_window(
   )))]
   let webview = {
     use tao::platform::unix::WindowExtUnix;
+
     use wry::WebViewBuilderExtUnix;
+
     let vbox = window.default_vbox().unwrap();
+
     builder.build_gtk(vbox).unwrap()
   };
   (window, webview)

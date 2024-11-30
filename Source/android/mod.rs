@@ -61,9 +61,11 @@ impl<T> std::ops::Deref for StaticCell<T> {
 macro_rules! define_static_handlers {
   ($($var:ident = $type_name:ident { $($fields:ident:$types:ty),+ $(,)? });+ $(;)?) => {
     $(pub static $var: StaticCell<Option<$type_name>> = StaticCell(RefCell::new(None));
+
     pub struct $type_name {
       $($fields: $types,)*
     }
+
     impl $type_name {
       pub fn new($($fields: $types,)*) -> Self {
         Self {
@@ -71,7 +73,9 @@ macro_rules! define_static_handlers {
         }
       }
     }
+
     unsafe impl Send for $type_name {}
+
     unsafe impl Sync for $type_name {})*
   };
 }
@@ -192,7 +196,9 @@ impl InnerWebView {
     let url = if let Some(mut url) = url {
       if let Some(pos) = url.find("://") {
         let name = &url[..pos];
+
         let is_custom_protocol = custom_protocols.iter().any(|(n, _)| n == name);
+
         if is_custom_protocol {
           url = url.replace(&format!("{name}://"), &format!("{scheme}://{name}."))
         }
@@ -224,6 +230,7 @@ impl InnerWebView {
     }));
 
     WITH_ASSET_LOADER.replace(Some(with_asset_loader));
+
     if let Some(domain) = asset_loader_domain {
       ASSET_LOADER_DOMAIN.replace(Some(domain));
     }
@@ -247,7 +254,9 @@ impl InnerWebView {
             }
 
             let (tx, rx) = channel();
+
             let initialization_scripts = initialization_scripts.clone();
+
             let responder: Box<dyn FnOnce(HttpResponse<Cow<'static, [u8]>>)> =
               Box::new(move |mut response| {
                 if !is_document_start_script_enabled {
@@ -269,8 +278,11 @@ impl InnerWebView {
                   if should_inject_scripts && !initialization_scripts.is_empty() {
                     let mut document = kuchiki::parse_html()
                       .one(String::from_utf8_lossy(response.body()).into_owned());
+
                     let csp = response.headers_mut().get_mut(CONTENT_SECURITY_POLICY);
+
                     let mut hashes = Vec::new();
+
                     with_html_head(&mut document, |head| {
                       // iterate in reverse order since we are prepending each script to the head tag
                       for script in initialization_scripts.iter().rev() {
@@ -278,8 +290,11 @@ impl InnerWebView {
                           QualName::new(None, ns!(html), "script".into()),
                           None,
                         );
+
                         script_el.append(NodeRef::new_text(script.0.as_str()));
+
                         head.prepend(script_el);
+
                         if csp.is_some() {
                           hashes.push(hash_script(script.0.as_str()));
                         }
@@ -305,6 +320,7 @@ impl InnerWebView {
               });
 
             (custom_protocol.1)(webview_id, request, RequestAsyncResponder { responder });
+
             return Some(rx.recv_timeout(MAIN_PIPE_TIMEOUT).unwrap());
           }
           None
@@ -341,7 +357,9 @@ impl InnerWebView {
 
   pub fn url(&self) -> crate::Result<String> {
     let (tx, rx) = bounded(1);
+
     MainPipe::send(WebViewMessage::GetUrl(tx));
+
     rx.recv_timeout(MAIN_PIPE_TIMEOUT).map_err(Into::into)
   }
 
@@ -350,6 +368,7 @@ impl InnerWebView {
       js.into(),
       callback.map(|c| Box::new(c) as Box<dyn Fn(String) + Send + 'static>),
     ));
+
     Ok(())
   }
 
@@ -370,32 +389,39 @@ impl InnerWebView {
 
   pub fn set_background_color(&self, background_color: RGBA) -> Result<()> {
     MainPipe::send(WebViewMessage::SetBackgroundColor(background_color));
+
     Ok(())
   }
 
   pub fn load_url(&self, url: &str) -> Result<()> {
     MainPipe::send(WebViewMessage::LoadUrl(url.to_string(), None));
+
     Ok(())
   }
 
   pub fn load_url_with_headers(&self, url: &str, headers: http::HeaderMap) -> Result<()> {
     MainPipe::send(WebViewMessage::LoadUrl(url.to_string(), Some(headers)));
+
     Ok(())
   }
 
   pub fn load_html(&self, html: &str) -> Result<()> {
     MainPipe::send(WebViewMessage::LoadHtml(html.to_string()));
+
     Ok(())
   }
 
   pub fn clear_all_browsing_data(&self) -> Result<()> {
     MainPipe::send(WebViewMessage::ClearAllBrowsingData);
+
     Ok(())
   }
 
   pub fn cookies_for_url(&self, url: &str) -> Result<Vec<cookie::Cookie<'static>>> {
     let (tx, rx) = bounded(1);
+
     MainPipe::send(WebViewMessage::GetCookies(tx, url.to_string()));
+
     rx.recv_timeout(MAIN_PIPE_TIMEOUT).map_err(Into::into)
   }
 
@@ -456,7 +482,9 @@ fn with_html_head<F: FnOnce(&NodeRef)>(document: &mut NodeRef, f: F) {
       QualName::new(None, ns!(html), LocalName::from("head")),
       None,
     );
+
     f(&node);
+
     document.prepend(node)
   }
 }

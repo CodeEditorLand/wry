@@ -42,6 +42,7 @@ macro_rules! android_binding {
       [JString, JObject, jboolean],
       jobject
     );
+
     android_fn!(
       $domain,
       $package,
@@ -50,6 +51,7 @@ macro_rules! android_binding {
       [],
       jboolean
     );
+
     android_fn!(
       $domain,
       $package,
@@ -58,6 +60,7 @@ macro_rules! android_binding {
       [],
       jstring
     );
+
     android_fn!(
       $domain,
       $package,
@@ -66,6 +69,7 @@ macro_rules! android_binding {
       [JString],
       jboolean
     );
+
     android_fn!(
       $domain,
       $package,
@@ -74,7 +78,9 @@ macro_rules! android_binding {
       [JString],
       jboolean
     );
+
     android_fn!($domain, $package, RustWebView, onEval, [jint, JString]);
+
     android_fn!(
       $domain,
       $package,
@@ -82,6 +88,7 @@ macro_rules! android_binding {
       onPageLoading,
       [JString]
     );
+
     android_fn!(
       $domain,
       $package,
@@ -89,7 +96,9 @@ macro_rules! android_binding {
       onPageLoaded,
       [JString]
     );
+
     android_fn!($domain, $package, Ipc, ipc, [JString, JString]);
+
     android_fn!(
       $domain,
       $package,
@@ -116,10 +125,12 @@ fn handle_request(
     let uri = env
       .call_method(&request, "getUrl", "()Landroid/net/Uri;", &[])?
       .l()?;
+
     let url: JString = env
       .call_method(&uri, "toString", "()Ljava/lang/String;", &[])?
       .l()?
       .into();
+
     let url = env.get_string(&url)?.to_string_lossy().to_string();
 
     #[cfg(feature = "tracing")]
@@ -131,6 +142,7 @@ fn handle_request(
       .call_method(&request, "getMethod", "()Ljava/lang/String;", &[])?
       .l()
       .map(JString::from)?;
+
     request_builder = request_builder.method(
       env
         .get_string(&method)?
@@ -142,8 +154,11 @@ fn handle_request(
     let request_headers = env
       .call_method(request, "getRequestHeaders", "()Ljava/util/Map;", &[])?
       .l()?;
+
     let request_headers = JMap::from_env(env, &request_headers)?;
+
     let mut iter = request_headers.iter(env)?;
+
     while let Some((header, value)) = iter.next(env)? {
       let header = JString::from(header);
       let value = JString::from(value);
@@ -162,11 +177,13 @@ fn handle_request(
       Err(e) => {
         #[cfg(feature = "tracing")]
         tracing::warn!("Failed to build response: {}", e);
+
         return Ok(*JObject::null());
       }
     };
 
     let webview_id = env.get_string(&webview_id)?;
+
     let webview_id = webview_id.to_str().ok().unwrap_or_default();
 
     let response = {
@@ -178,6 +195,7 @@ fn handle_request(
         is_document_start_script_enabled != 0,
       )
     };
+
     if let Some(response) = response {
       let status = response.status();
       let status_code = status.as_u16() as i32;
@@ -193,19 +211,25 @@ fn handle_request(
       if let Some(err) = status_err {
         #[cfg(feature = "tracing")]
         tracing::warn!("{}", err);
+
         return Ok(*JObject::null());
       }
 
       let reason_phrase = status.canonical_reason().unwrap_or("OK");
       let (mime_type, encoding) = if let Some(content_type) = response.headers().get(CONTENT_TYPE) {
         let content_type = content_type.to_str().unwrap().trim();
+
         let mut s = content_type.split(';');
+
         let mime_type = s.next().unwrap().trim();
+
         let mut encoding = None;
+
         for token in s {
           let token = token.trim();
           if token.starts_with("charset=") {
             encoding.replace(token.split('=').nth(1).unwrap());
+
             break;
           }
         }
@@ -225,6 +249,7 @@ fn handle_request(
       let obj = env.new_object("java/util/HashMap", "()V", &[])?;
       let response_headers = {
         let headers_map = JMap::from_env(env, &obj)?;
+
         for (name, value) in headers.iter() {
           // WebResourceResponse will automatically generate Content-Type and
           // Content-Length headers so we should skip them to avoid duplication.
@@ -235,6 +260,7 @@ fn handle_request(
           let value = env.new_string(value.to_str().unwrap_or_default())?;
           headers_map.put(env, &key, &value)?;
         }
+
         headers_map
       };
 
@@ -303,6 +329,7 @@ pub unsafe fn shouldOverride(mut env: JNIEnv, _: JClass, url: JString) -> jboole
         .map(|f| !(f.handler)(url))
         .unwrap_or(false)
     }
+
     Err(e) => {
       #[cfg(feature = "tracing")]
       tracing::warn!("Failed to parse JString: {}", e);
@@ -325,6 +352,7 @@ pub unsafe fn onEval(mut env: JNIEnv, _: JClass, id: jint, result: JString) {
         cb(result.into());
       }
     }
+
     Err(e) => {
       #[cfg(feature = "tracing")]
       tracing::warn!("Failed to parse JString: {}", e);
@@ -360,6 +388,7 @@ pub unsafe fn handleReceivedTitle(mut env: JNIEnv, _: JClass, _webview: JObject,
         (title_handler.handler)(title)
       }
     }
+
     Err(e) => {
       #[cfg(feature = "tracing")]
       tracing::warn!("Failed to parse JString: {}", e)
@@ -390,6 +419,7 @@ pub unsafe fn onPageLoading(mut env: JNIEnv, _: JClass, url: JString) {
         (on_load.handler)(PageLoadEvent::Started, url)
       }
     }
+
     Err(e) => {
       #[cfg(feature = "tracing")]
       tracing::warn!("Failed to parse JString: {}", e)
@@ -406,6 +436,7 @@ pub unsafe fn onPageLoaded(mut env: JNIEnv, _: JClass, url: JString) {
         (on_load.handler)(PageLoadEvent::Finished, url)
       }
     }
+
     Err(e) => {
       #[cfg(feature = "tracing")]
       tracing::warn!("Failed to parse JString: {}", e)

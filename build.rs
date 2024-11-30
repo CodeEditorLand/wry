@@ -18,7 +18,9 @@ fn main() {
     }
 
     println!("cargo:rerun-if-env-changed=WRY_ANDROID_PACKAGE");
+
     println!("cargo:rerun-if-env-changed=WRY_ANDROID_LIBRARY");
+
     println!("cargo:rerun-if-env-changed=WRY_ANDROID_KOTLIN_FILES_OUT_DIR");
 
     if let Ok(kotlin_out_dir) = std::env::var("WRY_ANDROID_KOTLIN_FILES_OUT_DIR") {
@@ -48,6 +50,7 @@ fn main() {
             .to_string_lossy()
             .to_uppercase()
         );
+
         let class_init_env = format!(
           "WRY_{}_CLASS_INIT",
           file
@@ -59,6 +62,7 @@ fn main() {
         );
 
         println!("cargo:rerun-if-env-changed={class_extension_env}");
+
         println!("cargo:rerun-if-env-changed={class_init_env}");
 
         let content = fs::read_to_string(file.path())
@@ -86,7 +90,9 @@ fn main() {
           "kt" => "/* THIS FILE IS AUTO-GENERATED. DO NOT MODIFY!! */\n\n",
           _ => "String::new()",
         };
+
         let mut out = String::from(auto_generated_comment);
+
         out.push_str(&content);
 
         let out_path = kotlin_out_dir.join(file.file_name());
@@ -94,6 +100,7 @@ fn main() {
         if fs::read_to_string(&out_path).map_or(true, |o| o != out) {
           fs::write(&out_path, out).expect("Failed to write kotlin file");
         }
+
         println!("cargo:rerun-if-changed={}", out_path.display());
       }
     }

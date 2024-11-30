@@ -23,6 +23,7 @@ pub(crate) fn other_mouse_down(this: &WryWebView, event: &NSEvent) {
           this.evaluateJavaScript_completionHandler(&NSString::from_str(&js), None);
           return;
         }
+
         _ => {}
       }
     }
@@ -47,6 +48,7 @@ pub(crate) fn other_mouse_up(this: &WryWebView, event: &NSEvent) {
           this.evaluateJavaScript_completionHandler(&NSString::from_str(&js), None);
           return;
         }
+
         _ => {}
       }
     }
@@ -75,6 +77,7 @@ unsafe fn create_js_mouse_event(
   format!(
     r#"(() => {{
         const el = document.elementFromPoint({x},{y});
+
         const ev = new MouseEvent('{event_name}', {{
           view: window,
           button: {button},
@@ -99,6 +102,7 @@ unsafe fn create_js_mouse_event(
           shiftKey: {shift_key},
           altKey: {alt_key},
         }});
+
         el.dispatchEvent(ev)
         if (!ev.defaultPrevented && "{event_name}" === "mouseup") {{
           if (ev.button === 3) {{

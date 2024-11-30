@@ -54,7 +54,9 @@ fn main() -> wry::Result<()> {
   )))]
   let webview = {
     use tao::platform::unix::WindowExtUnix;
+
     let vbox = window.default_vbox().unwrap();
+
     builder.build_gtk(vbox)?
   };
 
@@ -87,6 +89,7 @@ fn main() -> wry::Result<()> {
         } else {
           &window
         };
+
         webview_container = new_parent.id();
 
         #[cfg(target_os = "macos")]

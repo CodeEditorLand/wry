@@ -36,6 +36,7 @@ pub struct MainPipe<'a> {
 impl<'a> MainPipe<'a> {
   pub(crate) fn send(message: WebViewMessage) {
     let size = std::mem::size_of::<bool>();
+
     if let Ok(()) = CHANNEL.0.send(message) {
       unsafe {
         libc::write(
@@ -49,6 +50,7 @@ impl<'a> MainPipe<'a> {
 
   pub fn recv(&mut self) -> JniResult<MainPipeState> {
     let activity = self.activity.as_obj();
+
     if let Ok(message) = CHANNEL.1.recv() {
       match message {
         WebViewMessage::CreateWebView(attrs) => {
@@ -108,6 +110,7 @@ impl<'a> MainPipe<'a> {
           // set user-agent
           if let Some(user_agent) = user_agent {
             let user_agent = self.env.new_string(user_agent)?;
+
             self.env.call_method(
               &webview,
               "setUserAgent",
@@ -215,6 +218,7 @@ impl<'a> MainPipe<'a> {
 
           self.webview = Some(webview);
         }
+
         WebViewMessage::Eval(script, callback) => {
           if let Some(webview) = &self.webview {
             let id = EVAL_ID_GENERATOR.next() as i32;
@@ -241,6 +245,7 @@ impl<'a> MainPipe<'a> {
               );
 
             let s = self.env.new_string(script)?;
+
             self.env.call_method(
               webview.as_obj(),
               "evalScript",
@@ -249,11 +254,13 @@ impl<'a> MainPipe<'a> {
             )?;
           }
         }
+
         WebViewMessage::SetBackgroundColor(background_color) => {
           if let Some(webview) = &self.webview {
             set_background_color(&mut self.env, webview.as_obj(), background_color)?;
           }
         }
+
         WebViewMessage::GetWebViewVersion(tx) => {
           match self
             .env
@@ -269,9 +276,11 @@ impl<'a> MainPipe<'a> {
             Ok(version) => {
               tx.send(Ok(version)).unwrap();
             }
+
             Err(e) => tx.send(Err(e.into())).unwrap(),
           }
         }
+
         WebViewMessage::GetUrl(tx) => {
           if let Some(webview) = &self.webview {
             let url = self
@@ -280,6 +289,7 @@ impl<'a> MainPipe<'a> {
               .and_then(|v| v.l())
               .and_then(|s| {
                 let s = JString::from(s);
+
                 self
                   .env
                   .get_string(&s)
@@ -290,6 +300,7 @@ impl<'a> MainPipe<'a> {
             tx.send(url).unwrap()
           }
         }
+
         WebViewMessage::Jni(f) => {
           if let Some(w) = &self.webview {
             f(&mut self.env, activity, w.as_obj());
@@ -297,12 +308,15 @@ impl<'a> MainPipe<'a> {
             f(&mut self.env, activity, &JObject::null());
           }
         }
+
         WebViewMessage::LoadUrl(url, headers) => {
           if let Some(webview) = &self.webview {
             let url = self.env.new_string(url)?;
+
             load_url(&mut self.env, webview.as_obj(), &url, headers, false)?;
           }
         }
+
         WebViewMessage::ClearAllBrowsingData => {
           if let Some(webview) = &self.webview {
             self
@@ -310,15 +324,19 @@ impl<'a> MainPipe<'a> {
               .call_method(webview, "clearAllBrowsingData", "()V", &[])?;
           }
         }
+
         WebViewMessage::LoadHtml(html) => {
           if let Some(webview) = &self.webview {
             let html = self.env.new_string(html)?;
+
             load_html(&mut self.env, webview.as_obj(), &html)?;
           }
         }
+
         WebViewMessage::GetCookies(tx, url) => {
           if let Some(webview) = &self.webview {
             let url = self.env.new_string(url)?;
+
             let cookies = self
               .env
               .call_method(
@@ -330,6 +348,7 @@ impl<'a> MainPipe<'a> {
               .and_then(|v| v.l())
               .and_then(|s| {
                 let s = JString::from(s);
+
                 self
                   .env
                   .get_string(&s)
@@ -346,11 +365,13 @@ impl<'a> MainPipe<'a> {
             .unwrap();
           }
         }
+
         WebViewMessage::OnDestroy => {
           return Ok(MainPipeState::Destroyed);
         }
       }
     }
+
     Ok(MainPipeState::Alive)
   }
 }
@@ -369,15 +390,19 @@ fn load_url<'a>(
   };
   if let Some(headers) = headers {
     let obj = env.new_object("java/util/HashMap", "()V", &[])?;
+
     let headers_map = {
       let headers_map = JMap::from_env(env, &obj)?;
       for (name, value) in headers.iter() {
         let key = env.new_string(name)?;
+
         let value = env.new_string(value.to_str().unwrap_or_default())?;
+
         headers_map.put(env, &key, &value)?;
       }
       headers_map
     };
+
     env.call_method(
       webview,
       function,

@@ -61,14 +61,19 @@ fn run_strace_benchmarks(new_data: &mut utils::BenchResult) -> Result<()> {
       .wait()?;
 
     let mut output = String::new();
+
     file.as_file_mut().read_to_string(&mut output)?;
 
     let strace_result = utils::parse_strace_output(&output);
+
     let clone = 1
       + strace_result.get("clone").map(|d| d.calls).unwrap_or(0)
       + strace_result.get("clone3").map(|d| d.calls).unwrap_or(0);
+
     let total = strace_result.get("total").unwrap().calls;
+
     thread_count.insert(name.to_string(), clone);
+
     syscall_count.insert(name.to_string(), total);
   }
 
@@ -83,6 +88,7 @@ fn run_max_mem_benchmark() -> Result<HashMap<String, u64>> {
 
   for (name, example_exe) in get_all_benchmarks() {
     let benchmark_file = utils::target_dir().join(format!("mprof{}_.dat", name));
+
     let benchmark_file = benchmark_file.to_str().unwrap();
 
     let proc = Command::new("mprof")
@@ -98,7 +104,9 @@ fn run_max_mem_benchmark() -> Result<HashMap<String, u64>> {
       .spawn()?;
 
     let proc_result = proc.wait_with_output()?;
+
     println!("{:?}", proc_result);
+
     results.insert(
       name.to_string(),
       utils::parse_max_mem(benchmark_file).unwrap(),
@@ -115,15 +123,20 @@ fn rlib_size(target_dir: &std::path::Path, prefix: &str) -> u64 {
 
   for entry in std::fs::read_dir(target_dir.join("deps")).unwrap() {
     let entry = entry.unwrap();
+
     let os_str = entry.file_name();
+
     let name = os_str.to_str().unwrap();
+
     if name.starts_with(prefix) && name.ends_with(".rlib") {
       let start = name.split('-').next().unwrap().to_string();
       if seen.contains(&start) {
         println!("skip {}", name);
       } else {
         seen.insert(start);
+
         size += entry.metadata().unwrap().len();
+
         println!("check size {} {}", name, size);
       }
     }
@@ -147,6 +160,7 @@ fn get_binary_sizes(target_dir: &Path) -> Result<HashMap<String, u64>> {
   // add size for all EXEC_TIME_BENCHMARKS
   for (name, example_exe) in get_all_benchmarks() {
     let meta = std::fs::metadata(example_exe).unwrap();
+
     sizes.insert(name.to_string(), meta.len());
   }
 
@@ -241,6 +255,7 @@ fn run_exec_time(target_dir: &Path) -> Result<HashMap<String, HashMap<String, f6
       .unwrap(),
   ) {
     let data = data.as_object().unwrap().clone();
+
     results.insert(
       name.to_string(),
       data
@@ -277,6 +292,7 @@ fn main() -> Result<()> {
 
   if cfg!(target_os = "linux") {
     run_strace_benchmarks(&mut new_data)?;
+
     new_data.max_memory = run_max_mem_benchmark()?;
   }
 

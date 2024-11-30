@@ -22,6 +22,7 @@ fn main() -> wry::Result<()> {
     use gtk::prelude::DisplayExtManual;
 
     gtk::init().unwrap();
+
     if gtk::gdk::Display::default().unwrap().backend().is_wayland() {
       panic!("This example doesn't support wayland!");
     }
@@ -72,6 +73,7 @@ fn main() -> wry::Result<()> {
             })
             .unwrap();
         }
+
         Event::WindowEvent {
           event: WindowEvent::CloseRequested,
           ..

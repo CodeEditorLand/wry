@@ -65,6 +65,7 @@ struct X11Data {
 impl Drop for X11Data {
   fn drop(&mut self) {
     unsafe { (self.xlib.XDestroyWindow)(self.x11_display as _, self.x11_window) };
+
     self.gtk_window.close();
   }
 }
@@ -117,7 +118,9 @@ impl InnerWebView {
     let xlib = Xlib::open()?;
 
     let gdk_display = gdk::Display::default().ok_or(crate::Error::X11DisplayNotFound)?;
+
     let gx11_display: &X11Display = gdk_display.downcast_ref().unwrap();
+
     let raw = gx11_display.as_ptr();
 
     let x11_display = unsafe { gdkx11::ffi::gdk_x11_display_get_xdisplay(raw) };
@@ -161,11 +164,13 @@ impl InnerWebView {
     attributes: &WebViewAttributes,
   ) -> c_ulong {
     let scale_factor = scale_factor_from_x11(xlib, display, parent);
+
     let (x, y) = attributes
       .bounds
       .map(|b| b.position.to_physical::<f64>(scale_factor))
       .map(Into::into)
       .unwrap_or((0, 0));
+
     let (width, height) = attributes
       .bounds
       .map(|b| b.size.to_physical::<u32>(scale_factor))
@@ -191,16 +196,21 @@ impl InnerWebView {
   ) -> (gtk::Window, gtk::Box) {
     // Gdk.Window
     let gdk_window = unsafe { gdk_x11_window_foreign_new_for_display(raw, x11_window) };
+
     let gdk_window = unsafe { gdk::Window::from_glib_full(gdk_window) };
 
     // Gtk.Window
     let window = gtk::Window::new(gtk::WindowType::Toplevel);
+
     window.connect_realize(glib::clone!(@weak gdk_window as wd => move |w| w.set_window(wd)));
+
     window.set_has_window(true);
+
     window.realize();
 
     // Gtk.Box (vertical)
     let vbox = gtk::Box::new(gtk::Orientation::Vertical, 0);
+
     window.add(&vbox);
 
     (window, vbox)
@@ -216,6 +226,7 @@ impl InnerWebView {
   {
     // default_context allows us to create a scoped context on-demand
     let mut default_context;
+
     let web_context = if attributes.incognito {
       default_context = WebContext::new_ephemeral();
       &mut default_context
@@ -228,6 +239,7 @@ impl InnerWebView {
         }
       }
     };
+
     if let Some(proxy_setting) = &attributes.proxy_config {
       let proxy_uri = match proxy_setting {
         ProxyConfig::Http(endpoint) => format!("http://{}:{}", endpoint.host, endpoint.port),
@@ -237,6 +249,7 @@ impl InnerWebView {
       };
       if let Some(website_data_manager) = web_context.context().website_data_manager() {
         let mut settings = NetworkProxySettings::new(Some(proxy_uri.as_str()), &[]);
+
         website_data_manager
           .set_network_proxy_settings(NetworkProxyMode::Custom, Some(&mut settings));
       }
@@ -289,6 +302,7 @@ impl InnerWebView {
       .id
       .map(|id| id.to_string())
       .unwrap_or_else(|| (webview.as_ptr() as isize).to_string());
+
     unsafe { webview.set_data(WEBVIEW_ID, id.clone()) };
 
     let w = Self {
@@ -313,9 +327,11 @@ impl InnerWebView {
 
     // Run pending webview.eval() scripts once webview loads.
     let pending_scripts = w.pending_scripts.clone();
+
     w.webview.connect_load_changed(move |webview, event| {
       if let LoadEvent::Committed = event {
         let mut pending_scripts_ = pending_scripts.lock().unwrap();
+
         if let Some(pending_scripts) = pending_scripts_.take() {
           let cancellable: Option<&Cancellable> = None;
           for script in pending_scripts {
@@ -417,6 +433,7 @@ impl InnerWebView {
     if let Some(document_title_changed_handler) = attributes.document_title_changed_handler.take() {
       webview.connect_title_notify(move |webview| {
         let new_title = webview.title().map(|t| t.to_string()).unwrap_or_default();
+
         document_title_changed_handler(new_title)
       });
     }
@@ -427,9 +444,11 @@ impl InnerWebView {
         LoadEvent::Committed => {
           on_page_load_handler(PageLoadEvent::Started, webview.uri().unwrap().to_string());
         }
+
         LoadEvent::Finished => {
           on_page_load_handler(PageLoadEvent::Finished, webview.uri().unwrap().to_string());
         }
+
         _ => (),
       });
     }
@@ -490,6 +509,7 @@ impl InnerWebView {
     let mut is_in_fixed_parent = false;
 
     let container_type = container.type_().name();
+
     if container_type == "GtkBox" {
       container
         .dynamic_cast_ref::<gtk::Box>()
@@ -526,6 +546,7 @@ impl InnerWebView {
   fn attach_ipc_handler(webview: WebView, attributes: &mut WebViewAttributes) {
     // Message handler
     let ipc_handler = attributes.ipc_handler.take();
+
     let manager = webview
       .user_content_manager()
       .expect("WebView does not have UserContentManager");
@@ -554,10 +575,12 @@ impl InnerWebView {
   #[cfg(any(debug_assertions, feature = "devtools"))]
   fn attach_inspector_handlers(webview: &WebView) -> Arc<AtomicBool> {
     let is_inspector_open = Arc::new(AtomicBool::default());
+
     if let Some(inspector) = webview.inspector() {
       let is_inspector_open_ = is_inspector_open.clone();
       inspector.connect_bring_to_front(move |_| {
         is_inspector_open_.store(true, Ordering::Relaxed);
+
         false
       });
       let is_inspector_open_ = is_inspector_open.clone();
@@ -565,6 +588,7 @@ impl InnerWebView {
         is_inspector_open_.store(false, Ordering::Relaxed);
       });
     }
+
     is_inspector_open
   }
 
@@ -574,7 +598,9 @@ impl InnerWebView {
 
   pub fn print(&self) -> Result<()> {
     let print = webkit2gtk::PrintOperation::new(&self.webview);
+
     print.run_dialog(None::<&gtk::Window>);
+
     Ok(())
   }
 
@@ -631,6 +657,7 @@ impl InnerWebView {
     } else {
       return Err(Error::InitScriptError);
     }
+
     Ok(())
   }
 
@@ -657,6 +684,7 @@ impl InnerWebView {
 
   pub fn zoom(&self, scale_factor: f64) -> Result<()> {
     self.webview.set_zoom_level(scale_factor);
+
     Ok(())
   }
 
@@ -667,11 +695,13 @@ impl InnerWebView {
       background_color.2 as _,
       background_color.3 as _,
     ));
+
     Ok(())
   }
 
   pub fn load_url(&self, url: &str) -> Result<()> {
     self.webview.load_uri(url);
+
     Ok(())
   }
 
@@ -694,6 +724,7 @@ impl InnerWebView {
 
   pub fn load_html(&self, html: &str) -> Result<()> {
     self.webview.load_html(html, None);
+
     Ok(())
   }
 
@@ -718,6 +749,7 @@ impl InnerWebView {
     if let Some(x11_data) = &self.x11 {
       unsafe {
         let attributes: XWindowAttributes = std::mem::zeroed();
+
         let mut attributes = std::mem::MaybeUninit::new(attributes).assume_init();
 
         let ok = (x11_data.xlib.XGetWindowAttributes)(
@@ -741,7 +773,9 @@ impl InnerWebView {
 
   pub fn set_bounds(&self, bounds: Rect) -> Result<()> {
     let scale_factor = self.webview.scale_factor() as f64;
+
     let (width, height) = bounds.size.to_logical::<i32>(scale_factor).into();
+
     let (x, y) = bounds.position.to_logical::<i32>(scale_factor).into();
 
     if let Some(x11_data) = &self.x11 {
@@ -802,6 +836,7 @@ impl InnerWebView {
 
   pub fn focus(&self) -> Result<()> {
     self.webview.grab_focus();
+
     Ok(())
   }
 
@@ -815,6 +850,7 @@ impl InnerWebView {
 
   fn cookie_from_soup_cookie(mut cookie: soup::Cookie) -> cookie::Cookie<'static> {
     let name = cookie.name().map(|n| n.to_string()).unwrap_or_default();
+
     let value = cookie.value().map(|n| n.to_string()).unwrap_or_default();
 
     let mut cookie_builder = cookie::CookieBuilder::new(name, value);
@@ -828,27 +864,33 @@ impl InnerWebView {
     }
 
     let http_only = cookie.is_http_only();
+
     cookie_builder = cookie_builder.http_only(http_only);
 
     let secure = cookie.is_secure();
+
     cookie_builder = cookie_builder.secure(secure);
 
     let same_site = cookie.same_site_policy();
+
     let same_site = match same_site {
       soup::SameSitePolicy::Lax => cookie::SameSite::Lax,
       soup::SameSitePolicy::Strict => cookie::SameSite::Strict,
       soup::SameSitePolicy::None => cookie::SameSite::None,
       _ => cookie::SameSite::None,
     };
+
     cookie_builder = cookie_builder.same_site(same_site);
 
     let expires = cookie.expires();
+
     let expires = match expires {
       Some(datetime) => cookie::time::OffsetDateTime::from_unix_timestamp(datetime.to_unix())
         .ok()
         .map(cookie::Expiration::DateTime),
       None => Some(cookie::Expiration::Session),
     };
+
     if let Some(expires) = expires {
       cookie_builder = cookie_builder.expires(expires);
     }
@@ -858,6 +900,7 @@ impl InnerWebView {
 
   pub fn cookies_for_url(&self, url: &str) -> Result<Vec<cookie::Cookie<'static>>> {
     let (tx, rx) = std::sync::mpsc::channel();
+
     self
       .webview
       .website_data_manager()
@@ -885,6 +928,7 @@ impl InnerWebView {
 
   pub fn cookies(&self) -> Result<Vec<cookie::Cookie<'static>>> {
     let (tx, rx) = std::sync::mpsc::channel();
+
     self
       .webview
       .website_data_manager()
@@ -1010,15 +1054,20 @@ mod ffi {
         user_data: glib::ffi::gpointer,
       ) {
         let mut error = std::ptr::null_mut();
+
         let ret =
           webkit_cookie_manager_get_all_cookies_finish(_source_object as *mut _, res, &mut error);
+
         let result = if error.is_null() {
           Ok(FromGlibPtrContainer::from_glib_full(ret))
         } else {
           Err(glib::translate::from_glib_full(error))
         };
+
         let callback: Box<glib::thread_guard::ThreadGuard<P>> = Box::from_raw(user_data as *mut _);
+
         let callback: P = callback.into_inner();
+
         callback(result);
       }
       let callback = cookies_trampoline::<P>;

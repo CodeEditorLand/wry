@@ -84,6 +84,7 @@ extern_class!(
   unsafe impl ClassType for WKWebView {
     #[inherits(UIResponder, NSObject)]
     type Super = UIView;
+
     type Mutability = MainThreadOnly;
   }
 );

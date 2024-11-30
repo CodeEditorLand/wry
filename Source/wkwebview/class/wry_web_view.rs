@@ -39,7 +39,9 @@ declare_class!(
 
   unsafe impl ClassType for WryWebView {
     type Super = WKWebView;
+
     type Mutability = MainThreadOnly;
+
     const NAME: &'static str = "WryWebView";
   }
 
@@ -139,10 +141,12 @@ declare_class!(
 impl WryWebView {
   pub(crate) fn add_custom_task_key(&mut self, task_id: usize) -> Retained<NSUUID> {
     let task_uuid = NSUUID::new();
+
     self
       .ivars_mut()
       .custom_protocol_task_ids
       .insert(task_id, task_uuid.clone());
+
     task_uuid
   }
   pub(crate) fn remove_custom_task_key(&mut self, task_id: usize) {

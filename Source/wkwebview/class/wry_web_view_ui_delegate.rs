@@ -31,7 +31,9 @@ declare_class!(
 
   unsafe impl ClassType for WryWebViewUIDelegate {
     type Super = NSObject;
+
     type Mutability = MainThreadOnly;
+
     const NAME: &'static str = "WryWebViewUIDelegate";
   }
 
@@ -90,6 +92,7 @@ impl WryWebViewUIDelegate {
     let delegate = mtm
       .alloc::<WryWebViewUIDelegate>()
       .set_ivars(WryWebViewUIDelegateIvars {});
+
     unsafe { msg_send_id![super(delegate), init] }
   }
 }

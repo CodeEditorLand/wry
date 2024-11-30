@@ -20,10 +20,12 @@ fn main() -> wry::Result<()> {
         wry::DragDropEvent::Enter { paths, position } => {
           println!("DragEnter: {position:?} {paths:?} ")
         }
+
         wry::DragDropEvent::Over { position } => println!("DragOver: {position:?} "),
         wry::DragDropEvent::Drop { paths, position } => {
           println!("DragDrop: {position:?} {paths:?} ")
         }
+
         wry::DragDropEvent::Leave => println!("DragLeave"),
         _ => {}
       }
@@ -46,8 +48,11 @@ fn main() -> wry::Result<()> {
   )))]
   let _webview = {
     use tao::platform::unix::WindowExtUnix;
+
     use wry::WebViewBuilderExtUnix;
+
     let vbox = window.default_vbox().unwrap();
+
     builder.build_gtk(vbox)?
   };
 

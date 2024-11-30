@@ -184,7 +184,9 @@ impl InnerWebView {
       .unwrap_or_else(|| COUNTER.next().to_string());
 
     let mut wv_ids = WEBVIEW_IDS.lock().unwrap();
+
     wv_ids.insert(webview_id.clone());
+
     drop(wv_ids);
 
     // Safety: objc runtime calls are unsafe
@@ -217,15 +219,20 @@ impl InnerWebView {
       let mut protocol_ptrs = Vec::new();
       for (name, function) in attributes.custom_protocols {
         let url_scheme_handler_cls = url_scheme_handler::create(&name);
+
         let handler: *mut AnyObject = objc2::msg_send![url_scheme_handler_cls, new];
+
         let function = Box::into_raw(Box::new(function));
+
         protocol_ptrs.push(function);
 
         let ivar = (*handler).class().instance_variable("function").unwrap();
+
         let ivar_delegate = ivar.load_mut(&mut *handler);
         *ivar_delegate = function as *mut _ as *mut c_void;
 
         let ivar = (*handler).class().instance_variable("webview_id").unwrap();
+
         let ivar_delegate: &mut *mut c_char = ivar.load_mut(&mut *handler);
         *ivar_delegate = CString::new(webview_id.as_bytes()).unwrap().into_raw();
 
@@ -235,6 +242,7 @@ impl InnerWebView {
             &NSString::from_str(&name),
           );
         }));
+
         if set_result.is_err() {
           return Err(Error::UrlSchemeRegisterError(name));
         }
@@ -263,15 +271,18 @@ impl InnerWebView {
         let proxy_config = match proxy_config {
           ProxyConfig::Http(endpoint) => {
             let nw_endpoint = nw_endpoint_t::try_from(endpoint).unwrap();
+
             nw_proxy_config_create_http_connect(nw_endpoint, null_mut())
           }
           ProxyConfig::Socks5(endpoint) => {
             let nw_endpoint = nw_endpoint_t::try_from(endpoint).unwrap();
+
             nw_proxy_config_create_socksv5(nw_endpoint)
           }
         };
 
         let proxies: Retained<NSArray<NSObject>> = NSArray::arrayWithObject(&*proxy_config);
+
         data_store.setValue_forKey(Some(&proxies), ns_string!("proxyConfigurations"));
       }
 
@@ -305,11 +316,13 @@ impl InnerWebView {
         let window = ns_view.window().unwrap();
 
         let scale_factor = window.backingScaleFactor();
+
         let (x, y) = attributes
           .bounds
           .map(|b| b.position.to_logical::<f64>(scale_factor))
           .map(Into::into)
           .unwrap_or((0, 0));
+
         let (w, h) = if is_child {
           attributes
             .bounds
@@ -335,15 +348,19 @@ impl InnerWebView {
           },
           size: CGSize::new(w as f64, h as f64),
         };
+
         let webview: Retained<WryWebView> =
           objc2::msg_send_id![super(webview), initWithFrame:frame configuration:&**config];
+
         webview
       };
       #[cfg(target_os = "ios")]
       let webview = {
         let frame = ns_view.frame();
+
         let webview: Retained<WryWebView> =
           objc2::msg_send_id![super(webview), initWithFrame:frame configuration:&**config];
+
         webview
       };
 
@@ -388,17 +405,20 @@ impl InnerWebView {
       if attributes.devtools {
         let has_inspectable_property: bool =
           NSObject::respondsToSelector(&webview, objc2::sel!(setInspectable:));
+
         if has_inspectable_property {
           webview.setInspectable(true);
         }
         // this cannot be on an `else` statement, it does not work on macOS :(
         let dev = NSString::from_str("developerExtrasEnabled");
+
         _preference.setValue_forKey(Some(&_yes), &dev);
       }
 
       // Message handler
       let ipc_handler_delegate = if let Some(ipc_handler) = attributes.ipc_handler {
         let delegate = WryWebViewDelegate::new(manager.clone(), ipc_handler, mtm);
+
         Some(delegate)
       } else {
         None
@@ -424,6 +444,7 @@ impl InnerWebView {
           attributes.download_completed_handler,
           mtm,
         );
+
         Some(delegate)
       } else {
         None
@@ -452,8 +473,10 @@ impl InnerWebView {
       #[cfg(target_os = "macos")]
       {
         let ns_window = ns_view.window().unwrap();
+
         let can_set_titlebar_style =
           ns_window.respondsToSelector(objc2::sel!(setTitlebarSeparatorStyle:));
+
         if can_set_titlebar_style {
           ns_window.setTitlebarSeparatorStyle(NSTitlebarSeparatorStyle::None);
         }
@@ -521,6 +544,7 @@ r#"Object.defineProperty(window, 'ipc', {
 
         // make sure the window is always on top when we create a new webview
         let app = NSApplication::sharedApplication(mtm);
+
         if os_version.0 >= 14 {
           NSApplication::activate(&app);
         } else {
@@ -627,6 +651,7 @@ r#"Object.defineProperty(window, 'ipc', {
 
   pub fn load_html(&self, html: &str) -> crate::Result<()> {
     self.navigate_to_string(html);
+
     Ok(())
   }
 
@@ -639,6 +664,7 @@ r#"Object.defineProperty(window, 'ipc', {
       let handler = block2::RcBlock::new(|| {});
       store.removeDataOfTypes_modifiedSince_completionHandler(&all_data_types, &date, &handler);
     }
+
     Ok(())
   }
 
@@ -692,9 +718,13 @@ r#"Object.defineProperty(window, 'ipc', {
         // Create a shared print info
         let print_info = objc2_app_kit::NSPrintInfo::sharedPrintInfo();
         // let print_info: id = msg_send![print_info, init];
+
         print_info.setTopMargin(_options.margins.top.into());
+
         print_info.setRightMargin(_options.margins.right.into());
+
         print_info.setBottomMargin(_options.margins.bottom.into());
+
         print_info.setLeftMargin(_options.margins.left.into());
 
         // Create new print operation from the webview content
@@ -705,6 +735,7 @@ r#"Object.defineProperty(window, 'ipc', {
 
         // Launch the modal
         let window = self.webview.window().unwrap();
+
         print_operation.runOperationModalForWindow_delegate_didRunSelector_contextInfo(
           &window,
           None,
@@ -790,10 +821,12 @@ r#"Object.defineProperty(window, 'ipc', {
 
       unsafe {
         let parent_view = self.webview.superview().unwrap();
+
         let frame = CGRect {
           origin: window_position(&parent_view, x, y, height),
           size: CGSize::new(width, height),
         };
+
         self.webview.setFrame(frame);
       }
     }
@@ -803,6 +836,7 @@ r#"Object.defineProperty(window, 'ipc', {
 
   pub fn set_visible(&self, visible: bool) -> Result<()> {
     self.webview.setHidden(!visible);
+
     Ok(())
   }
 
@@ -812,6 +846,7 @@ r#"Object.defineProperty(window, 'ipc', {
       let window = self.webview.window().unwrap();
       window.makeFirstResponder(Some(&self.webview));
     }
+
     Ok(())
   }
 
@@ -830,31 +865,39 @@ r#"Object.defineProperty(window, 'ipc', {
 
   unsafe fn cookie_from_wkwebview(cookie: &NSHTTPCookie) -> cookie::Cookie<'static> {
     let name = cookie.name().to_string();
+
     let value = cookie.value().to_string();
 
     let mut cookie_builder = cookie::CookieBuilder::new(name, value);
 
     let domain = cookie.domain().to_string();
+
     cookie_builder = cookie_builder.domain(domain);
 
     let path = cookie.path().to_string();
+
     cookie_builder = cookie_builder.path(path);
 
     let http_only = cookie.isHTTPOnly();
+
     cookie_builder = cookie_builder.http_only(http_only);
 
     let secure = cookie.isSecure();
+
     cookie_builder = cookie_builder.secure(secure);
 
     let same_site = cookie.sameSitePolicy();
+
     let same_site = match same_site {
       Some(policy) if policy.as_ref() == NSHTTPCookieSameSiteLax => cookie::SameSite::Lax,
       Some(policy) if policy.as_ref() == NSHTTPCookieSameSiteStrict => cookie::SameSite::Strict,
       _ => cookie::SameSite::None,
     };
+
     cookie_builder = cookie_builder.same_site(same_site);
 
     let expires = cookie.expiresDate();
+
     let expires = match expires {
       Some(datetime) => {
         cookie::time::OffsetDateTime::from_unix_timestamp(datetime.timeIntervalSince1970() as i64)
@@ -863,6 +906,7 @@ r#"Object.defineProperty(window, 'ipc', {
       }
       None => Some(cookie::Expiration::Session),
     };
+
     if let Some(expires) = expires {
       cookie_builder = cookie_builder.expires(expires);
     }
@@ -904,11 +948,13 @@ r#"Object.defineProperty(window, 'ipc', {
         .getAllCookies(&block2::RcBlock::new(
           move |cookies: NonNull<NSArray<NSHTTPCookie>>| {
             let cookies = cookies.as_ref();
+
             let cookies = cookies
               .to_vec()
               .into_iter()
               .map(|cookie| Self::cookie_from_wkwebview(cookie))
               .collect();
+
             let _ = tx.send(cookies);
           },
         ));
@@ -934,6 +980,7 @@ pub fn url_from_webview(webview: &WKWebView) -> Result<String> {
 
   let bytes = {
     let bytes: *const c_char = absolute_url.UTF8String();
+
     bytes as *const u8
   };
 
@@ -949,13 +996,17 @@ pub fn url_from_webview(webview: &WKWebView) -> Result<String> {
 pub fn platform_webview_version() -> Result<String> {
   unsafe {
     let bundle = NSBundle::bundleWithIdentifier(&NSString::from_str("com.apple.WebKit")).unwrap();
+
     let dict = bundle.infoDictionary().unwrap();
+
     let webkit_version = dict
       .objectForKey(&NSString::from_str("CFBundleVersion"))
       .unwrap();
+
     let webkit_version = Retained::cast::<NSString>(webkit_version);
 
     bundle.unload();
+
     Ok(webkit_version.to_string())
   }
 }
@@ -1005,12 +1056,17 @@ unsafe fn wait_for_blocking_operation<T>(rx: std::sync::mpsc::Receiver<T>) -> Re
   // run event loop until we get the response back, blocking for at most 3 seconds
   loop {
     let rl = objc2_foundation::NSRunLoop::mainRunLoop();
+
     let d = NSDate::dateWithTimeIntervalSinceNow(interval);
+
     rl.runUntilDate(&d);
+
     if let Ok(response) = rx.try_recv() {
       return Ok(response);
     }
+
     elapsed += interval;
+
     if elapsed >= limit {
       return Err(Error::Io(std::io::Error::new(
         std::io::ErrorKind::TimedOut,

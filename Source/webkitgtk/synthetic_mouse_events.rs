@@ -14,11 +14,14 @@ pub fn setup(webview: &WebView) {
   let bf_state_c = bf_state.clone();
   webview.connect_button_press_event(move |webview, event| {
     let mut inhibit = false;
+
     match event.button() {
       // back button
       8 => {
         inhibit = true;
+
         bf_state_c.set(BACK);
+
         webview.run_javascript(
           &create_js_mouse_event(event, true, &bf_state_c),
           None::<&gtk::gio::Cancellable>,
@@ -28,7 +31,9 @@ pub fn setup(webview: &WebView) {
       // forward button
       9 => {
         inhibit = true;
+
         bf_state_c.set(FORWARD);
+
         webview.run_javascript(
           &create_js_mouse_event(event, true, &bf_state_c),
           None::<&gtk::gio::Cancellable>,
@@ -48,11 +53,14 @@ pub fn setup(webview: &WebView) {
   let bf_state_c = bf_state.clone();
   webview.connect_button_release_event(move |webview, event| {
     let mut inhibit = false;
+
     match event.button() {
       // back button
       8 => {
         inhibit = true;
+
         bf_state_c.remove(BACK);
+
         webview.run_javascript(
           &create_js_mouse_event(event, false, &bf_state_c),
           None::<&gtk::gio::Cancellable>,
@@ -62,7 +70,9 @@ pub fn setup(webview: &WebView) {
       // forward button
       9 => {
         inhibit = true;
+
         bf_state_c.remove(FORWARD);
+
         webview.run_javascript(
           &create_js_mouse_event(event, false, &bf_state_c),
           None::<&gtk::gio::Cancellable>,
@@ -71,6 +81,7 @@ pub fn setup(webview: &WebView) {
       }
       _ => {}
     }
+
     if inhibit {
       gtk::glib::Propagation::Stop
     } else {
@@ -116,6 +127,7 @@ fn create_js_mouse_event(event: &EventButton, pressed: bool, state: &BackForward
   format!(
     r#"(() => {{
         const el = document.elementFromPoint({x},{y});
+
         const ev = new MouseEvent('{event_name}', {{
           view: window,
           button: {button},
@@ -140,6 +152,7 @@ fn create_js_mouse_event(event: &EventButton, pressed: bool, state: &BackForward
           shiftKey: {shift_key},
           altKey: {alt_key},
         }});
+
         el.dispatchEvent(ev)
         if (!ev.defaultPrevented && "{event_name}" === "mouseup") {{
           if (ev.button === 3) {{
@@ -182,6 +195,7 @@ impl BackForwardState {
 
   fn has(&self, button: u8) -> bool {
     let state = *self.0.borrow();
+
     state & !button != state
   }
 }

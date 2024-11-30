@@ -66,8 +66,11 @@ fn main() -> wry::Result<()> {
   )))]
   let _webview = {
     use tao::platform::unix::WindowExtUnix;
+
     use wry::WebViewBuilderExtUnix;
+
     let vbox = window.default_vbox().unwrap();
+
     builder.build_gtk(vbox)?
   };
 
@@ -128,8 +131,11 @@ fn stream_protocol(
   // get file length
   let len = {
     let old_pos = file.stream_position()?;
+
     let len = file.seek(SeekFrom::End(0))?;
+
     file.seek(SeekFrom::Start(old_pos))?;
+
     len
   };
 
@@ -201,6 +207,7 @@ fn stream_protocol(
           } else {
             // adjust end byte for MAX_LEN
             end = start + (end - start).min(len - start).min(MAX_LEN - 1);
+
             Some((start, end))
           }
         })
@@ -221,6 +228,7 @@ fn stream_protocol(
 
         // write the needed headers `Content-Type` and `Content-Range`
         buf.write_all(format!("{CONTENT_TYPE}: video/mp4\r\n").as_bytes())?;
+
         buf.write_all(format!("{CONTENT_RANGE}: bytes {start}-{end}/{len}\r\n").as_bytes())?;
 
         // write the separator to indicate the start of the range body
@@ -230,8 +238,11 @@ fn stream_protocol(
         let bytes_to_read = end + 1 - start;
 
         let mut local_buf = vec![0_u8; bytes_to_read as usize];
+
         file.seek(SeekFrom::Start(start))?;
+
         file.read_exact(&mut local_buf)?;
+
         buf.extend_from_slice(&local_buf);
       }
       // all ranges have been written, write the closing boundary
@@ -241,8 +252,11 @@ fn stream_protocol(
     }
   } else {
     resp = resp.header(CONTENT_LENGTH, len);
+
     let mut buf = Vec::with_capacity(len as usize);
+
     file.read_to_end(&mut buf)?;
+
     resp.body(buf)
   };
 

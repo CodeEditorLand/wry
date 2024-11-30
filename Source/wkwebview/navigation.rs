@@ -27,6 +27,7 @@ pub(crate) fn did_commit_navigation(
 
     // Inject scripts
     let mut pending_scripts = this.ivars().pending_scripts.lock().unwrap();
+
     if let Some(scripts) = &*pending_scripts {
       for script in scripts {
         webview.evaluateJavaScript_completionHandler(&NSString::from_str(script), None);
@@ -56,14 +57,19 @@ pub(crate) fn navigation_policy(
   unsafe {
     // shouldPerformDownload is only available on macOS 11.3+
     let can_download = action.respondsToSelector(objc2::sel!(shouldPerformDownload));
+
     let should_download: bool = if can_download {
       action.shouldPerformDownload()
     } else {
       false
     };
+
     let request = action.request();
+
     let url = request.URL().unwrap().absoluteString().unwrap();
+
     let target_frame = action.targetFrame();
+
     let is_main_frame = target_frame.map_or(false, |frame| frame.isMainFrame());
 
     if should_download {
@@ -97,6 +103,7 @@ pub(crate) fn navigation_policy_response(
       let has_download_handler = this.ivars().has_download_handler;
       if has_download_handler {
         (*handler).call((WKNavigationResponsePolicy::Download,));
+
         return;
       }
     }

@@ -89,24 +89,28 @@ fn main() -> wry::Result<()> {
         ..
       } => {
         let size = size.to_logical::<u32>(window.scale_factor());
+
         webview
           .set_bounds(Rect {
             position: LogicalPosition::new(0, 0).into(),
             size: LogicalSize::new(size.width / 2, size.height / 2).into(),
           })
           .unwrap();
+
         webview2
           .set_bounds(Rect {
             position: LogicalPosition::new(size.width / 2, 0).into(),
             size: LogicalSize::new(size.width / 2, size.height / 2).into(),
           })
           .unwrap();
+
         webview3
           .set_bounds(Rect {
             position: LogicalPosition::new(0, size.height / 2).into(),
             size: LogicalSize::new(size.width / 2, size.height / 2).into(),
           })
           .unwrap();
+
         webview4
           .set_bounds(Rect {
             position: LogicalPosition::new(size.width / 2, size.height / 2).into(),

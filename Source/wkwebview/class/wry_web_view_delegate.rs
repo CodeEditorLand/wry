@@ -27,7 +27,9 @@ declare_class!(
 
   unsafe impl ClassType for WryWebViewDelegate {
     type Super = NSObject;
+
     type Mutability = MainThreadOnly;
+
     const NAME: &'static str = "WryWebViewDelegate";
   }
 
@@ -51,8 +53,11 @@ declare_class!(
         let _span = tracing::info_span!(parent: None, "wry::ipc::handle").entered();
 
         let ipc_handler = &this.ivars().ipc_handler;
+
         let body = msg.body();
+
         let is_string = Retained::cast::<NSObject>(body.clone()).isKindOfClass(NSString::class());
+
         if is_string {
           let body = Retained::cast::<NSString>(body);
           let js_utf8 = body.UTF8String();
@@ -68,6 +73,7 @@ declare_class!(
             CStr::from_ptr(js_utf8).to_str(),
           ) {
             ipc_handler(Request::builder().uri(url).body(js.to_string()).unwrap());
+
             return;
           }
         }
@@ -95,6 +101,7 @@ impl WryWebViewDelegate {
     let delegate: Retained<Self> = unsafe { msg_send_id![super(delegate), init] };
 
     let proto_delegate = ProtocolObject::from_ref(delegate.as_ref());
+
     unsafe {
       // this will increate the retain count of the delegate
       delegate.ivars().controller.addScriptMessageHandler_name(

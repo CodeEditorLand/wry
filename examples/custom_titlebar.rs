@@ -132,7 +132,9 @@ fn main() -> wry::Result<()> {
 
           main {
             display: grid;
+
             place-items: center;
+
             height: calc(100vh - 30px);
           }
 
@@ -213,7 +215,9 @@ fn main() -> wry::Result<()> {
   let proxy = event_loop.create_proxy();
   let handler = move |req: Request<String>| {
     let body = req.body();
+
     let mut req = body.split([':', ',']);
+
     match req.next().unwrap() {
       "minimize" => {
         let _ = proxy.send_event(UserEvent::Minimize);
@@ -229,12 +233,16 @@ fn main() -> wry::Result<()> {
       }
       "mousedown" => {
         let x = req.next().unwrap().parse().unwrap();
+
         let y = req.next().unwrap().parse().unwrap();
+
         let _ = proxy.send_event(UserEvent::MouseDown(x, y));
       }
       "mousemove" => {
         let x = req.next().unwrap().parse().unwrap();
+
         let y = req.next().unwrap().parse().unwrap();
+
         let _ = proxy.send_event(UserEvent::MouseMove(x, y));
       }
       _ => {}
@@ -261,8 +269,11 @@ fn main() -> wry::Result<()> {
   )))]
   let webview = {
     use tao::platform::unix::WindowExtUnix;
+
     use wry::WebViewBuilderExtUnix;
+
     let vbox = window.default_vbox().unwrap();
+
     builder.build_gtk(vbox)?
   };
 
@@ -290,12 +301,15 @@ fn main() -> wry::Result<()> {
           let res = hit_test(window.inner_size(), x, y, window.scale_factor());
           match res {
             HitTestResult::Client | HitTestResult::NoWhere => {}
+
             _ => res.drag_resize_window(&window),
           }
         }
+
         UserEvent::MouseMove(x, y) => {
           hit_test(window.inner_size(), x, y, window.scale_factor()).change_cursor(&window);
         }
+
         UserEvent::CloseWindow => { /* handled above */ }
       },
       _ => (),
