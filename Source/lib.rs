@@ -574,6 +574,21 @@ pub struct WebViewAttributes<'a> {
   /// This is only effective if the webview was created by [`WebView::new_as_child`] or [`WebViewBuilder::new_as_child`]
   /// or on Linux, if was created by [`WebViewExtUnix::new_gtk`] or [`WebViewBuilderExtUnix::new_gtk`] with [`gtk::Fixed`].
   pub bounds: Option<Rect>,
+
+  /// Whether background throttling should be disabled.
+  ///
+  /// By default, browsers throttle timers and even unload the whole tab (view) to free resources after roughly 5 minutes when
+  /// a view became minimized or hidden. This will permanently suspend all tasks until the documents visibility state
+  /// changes back from hidden to visible by bringing the view back to the foreground.
+  ///
+  /// ## Platform-specific
+  ///
+  /// - **Linux / Windows / Android**: Unsupported. Workarounds like a pending WebLock transaction might suffice.
+  /// - **iOS**: Supported since version 17.0+.
+  /// - **macOS**: Supported since version 14.0+.
+  ///
+  /// see https://github.com/tauri-apps/tauri/issues/5250#issuecomment-2569380578
+  pub background_throttling: Option<BackgroundThrottlingPolicy>,
 }
 
 impl<'a> Default for WebViewAttributes<'a> {
@@ -614,6 +629,7 @@ impl<'a> Default for WebViewAttributes<'a> {
         position: dpi::LogicalPosition::new(0, 0).into(),
         size: dpi::LogicalSize::new(200, 200).into(),
       }),
+      background_throttling: None,
     }
   }
 }
@@ -1181,6 +1197,26 @@ impl<'a> WebViewBuilder<'a> {
     })
   }
 
+  /// Set whether background throttling should be disabled.
+  ///
+  /// By default, browsers throttle timers and even unload the whole tab (view) to free resources after roughly 5 minutes when
+  /// a view became minimized or hidden. This will permanently suspend all tasks until the documents visibility state
+  /// changes back from hidden to visible by bringing the view back to the foreground.
+  ///
+  /// ## Platform-specific
+  ///
+  /// - **Linux / Windows / Android**: Unsupported. Workarounds like a pending WebLock transaction might suffice.
+  /// - **iOS**: Supported since version 17.0+.
+  /// - **macOS**: Supported since version 14.0+.
+  ///
+  /// see https://github.com/tauri-apps/tauri/issues/5250#issuecomment-2569380578
+  pub fn with_background_throttling(self, policy: BackgroundThrottlingPolicy) -> Self {
+    self.and_then(|mut b| {
+      b.attrs.background_throttling = Some(policy);
+      Ok(b)
+    })
+  }
+
   /// Consume the builder and create the [`WebView`] from a type that implements [`HasWindowHandle`].
   ///
   /// # Platform-specific:
@@ -1238,6 +1274,7 @@ impl<'a> WebViewBuilder<'a> {
 #[derive(Clone, Default)]
 pub(crate) struct PlatformSpecificWebViewAttributes {
   data_store_identifier: Option<[u8; 16]>,
+  traffic_light_inset: Option<dpi::Position>,
 }
 
 #[cfg(any(target_os = "macos", target_os = "ios",))]
@@ -1247,6 +1284,12 @@ pub trait WebViewBuilderExtDarwin {
   ///
   /// - **macOS / iOS**: Available on macOS >= 14 and iOS >= 17
   fn with_data_store_identifier(self, identifier: [u8; 16]) -> Self;
+  /// Move the window controls to the specified position.
+  /// Normally this is handled by the Window but because `WebViewBuilder::build()` overwrites the window's NSView the controls will flicker on resizing.
+  /// Note: This method has no effects if the WebView is injected via `WebViewBuilder::build_as_child();` and there should be no flickers.
+  /// Warning: Do not use this if your chosen window library does not support traffic light insets.
+  /// Warning: Only use this in **decorated** windows with a **hidden titlebar**!
+  fn with_traffic_light_inset<P: Into<dpi::Position>>(self, position: P) -> Self;
 }
 
 #[cfg(any(target_os = "macos", target_os = "ios",))]
@@ -1254,6 +1297,13 @@ impl WebViewBuilderExtDarwin for WebViewBuilder<'_> {
   fn with_data_store_identifier(self, identifier: [u8; 16]) -> Self {
     self.and_then(|mut b| {
       b.platform_specific.data_store_identifier = Some(identifier);
+      Ok(b)
+    })
+  }
+
+  fn with_traffic_light_inset<P: Into<dpi::Position>>(self, position: P) -> Self {
+    self.and_then(|mut b| {
+      b.platform_specific.traffic_light_inset = Some(position.into());
       Ok(b)
     })
   }
@@ -1915,6 +1965,12 @@ pub trait WebViewExtMacOS {
   fn reparent(&self, window: *mut NSWindow) -> Result<()>;
   // Prints with extra options
   fn print_with_options(&self, options: &PrintOptions) -> Result<()>;
+  /// Move the window controls to the specified position.
+  /// Normally this is handled by the Window but because `WebViewBuilder::build()` overwrites the window's NSView the controls will flicker on resizing.
+  /// Note: This method has no effects if the WebView is injected via `WebViewBuilder::build_as_child();` and there should be no flickers.
+  /// Warning: Do not use this if your chosen window library does not support traffic light insets.
+  /// Warning: Only use this in **decorated** windows with a **hidden titlebar**!
+  fn set_traffic_light_inset<P: Into<dpi::Position>>(&self, position: P) -> Result<()>;
 }
 
 #[cfg(target_os = "macos")]
@@ -1937,6 +1993,10 @@ impl WebViewExtMacOS for WebView {
 
   fn print_with_options(&self, options: &PrintOptions) -> Result<()> {
     self.webview.print_with_options(options)
+  }
+
+  fn set_traffic_light_inset<P: Into<dpi::Position>>(&self, position: P) -> Result<()> {
+    self.webview.set_traffic_light_inset(position.into())
   }
 }
 
@@ -1995,6 +2055,17 @@ pub enum PageLoadEvent {
   Started,
   /// Indicates that the page content has finished loading
   Finished,
+}
+
+/// Background throttling policy
+#[derive(Debug, Clone)]
+pub enum BackgroundThrottlingPolicy {
+  /// A policy where background throttling is disabled
+  Disabled,
+  /// A policy where a web view that’s not in a window fully suspends tasks.
+  Suspend,
+  /// A policy where a web view that’s not in a window limits processing, but does not fully suspend tasks.
+  Throttle,
 }
 
 #[cfg(test)]
