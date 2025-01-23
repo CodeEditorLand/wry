@@ -93,8 +93,8 @@ features = [
 
 [target."cfg(any(target_os = \"ios\", target_os = \"macos\"))".dependencies]
 url = { version = "2.5" }
-block2 = { version = "0.5" }
-objc2 = { version = "0.5", features = ["exception"] }
+block2 = { version = "0.6" }
+objc2 = { version = "0.6", features = ["exception"] }
 objc2-web-kit = { version = "0.2.2", features = [
 	"objc2-app-kit",
 	"block2",
@@ -121,7 +121,7 @@ objc2-web-kit = { version = "0.2.2", features = [
 	"WKUserScript",
 	"WKHTTPCookieStore",
 ] }
-objc2-foundation = { version = "0.2.2", features = [
+objc2-foundation = { version = "0.3.0", features = [
 	"NSURLRequest",
 	"NSURL",
 	"NSString",
@@ -142,7 +142,7 @@ objc2-foundation = { version = "0.2.2", features = [
 ] }
 
 [target."cfg(target_os = \"ios\")".dependencies]
-objc2-ui-kit = { version = "0.2.2", features = [
+objc2-ui-kit = { version = "0.3.0", features = [
 	"UIResponder",
 	"UIScrollView",
 	"UIView",
