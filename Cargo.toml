@@ -95,7 +95,7 @@ features = [
 url = { version = "2.5" }
 block2 = { version = "0.6" }
 objc2 = { version = "0.6", features = ["exception"] }
-objc2-web-kit = { version = "0.2.2", features = [
+objc2-web-kit = { version = "0.3.0", features = [
 	"objc2-app-kit",
 	"block2",
 	"WKWebView",
@@ -152,7 +152,7 @@ objc2-ui-kit = { version = "0.3.0", features = [
 ] }
 
 [target."cfg(target_os = \"macos\")".dependencies]
-objc2-app-kit = { version = "0.2.2", features = [
+objc2-app-kit = { version = "0.3.0", features = [
   "NSApplication",
   "NSButton",
   "NSControl",
@@ -183,7 +183,7 @@ pollster = "0.4.0"
 tao = "0.31"
 wgpu = "24"
 winit = "0.30"
-getrandom = "0.2"
+getrandom = "0.3"
 http-range = "0.1"
 percent-encoding = "2.3"
 
