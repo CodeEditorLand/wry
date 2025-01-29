@@ -2,7 +2,7 @@ workspace = {}
 
 [package]
 name = "wry"
-version = "0.48.0"
+version = "0.48.1"
 authors = ["Tauri Programme within The Commons Conservancy"]
 edition = "2021"
 license-file = "LICENSE"
@@ -11,6 +11,7 @@ readme = "README.md"
 repository = "https://github.com/tauri-apps/wry"
 documentation = "https://docs.rs/wry"
 categories = ["gui"]
+rust-version = "1.77"
 exclude = ["/.changes", "/.github", "/audits", "/wry-logo.svg"]
 
 [package.metadata.docs.rs]
@@ -69,90 +70,102 @@ percent-encoding = "2.3"
 webview2-com = "0.35"
 windows-version = "0.1"
 windows-core = "0.59"
-dunce = { version = "1" }
+dunce = "1"
 
 [target."cfg(target_os = \"windows\")".dependencies.windows]
 version = "0.59"
 features = [
-	"implement",
-	"Win32_Foundation",
-	"Win32_Graphics_Gdi",
-	"Win32_System_Com",
-	"Win32_System_Com_StructuredStorage",
-	"Win32_System_LibraryLoader",
-	"Win32_System_Ole",
-	"Win32_System_SystemInformation",
-	"Win32_System_SystemServices",
-	"Win32_UI_Shell",
-	"Win32_UI_WindowsAndMessaging",
-	"Win32_Globalization",
-	"Win32_UI_HiDpi",
-	"Win32_UI_Input",
-	"Win32_UI_Input_KeyboardAndMouse",
+  "Win32_Foundation",
+  "Win32_Graphics_Gdi",
+  "Win32_System_Com",
+  "Win32_System_Com_StructuredStorage",
+  "Win32_System_LibraryLoader",
+  "Win32_System_Ole",
+  "Win32_System_SystemInformation",
+  "Win32_System_SystemServices",
+  "Win32_UI_Shell",
+  "Win32_UI_WindowsAndMessaging",
+  "Win32_Globalization",
+  "Win32_UI_HiDpi",
+  "Win32_UI_Input",
+  "Win32_UI_Input_KeyboardAndMouse",
 ]
 
-[target."cfg(any(target_os = \"ios\", target_os = \"macos\"))".dependencies]
-url = { version = "2.5" }
-block2 = { version = "0.6" }
+[target.'cfg(target_vendor = "apple")'.dependencies]
+url = "2.5"
+block2 = "0.6"
 objc2 = { version = "0.6", features = ["exception"] }
-objc2-web-kit = { version = "0.3.0", features = [
-	"objc2-app-kit",
-	"block2",
-	"WKWebView",
-	"WKWebViewConfiguration",
-	"WKWebsiteDataStore",
-	"WKDownload",
-	"WKDownloadDelegate",
-	"WKNavigation",
-	"WKNavigationDelegate",
-	"WKUserContentController",
-	"WKURLSchemeHandler",
-	"WKPreferences",
-	"WKURLSchemeTask",
-	"WKScriptMessageHandler",
-	"WKUIDelegate",
-	"WKOpenPanelParameters",
-	"WKFrameInfo",
-	"WKSecurityOrigin",
-	"WKScriptMessage",
-	"WKNavigationAction",
-	"WKWebpagePreferences",
-	"WKNavigationResponse",
-	"WKUserScript",
-	"WKHTTPCookieStore",
+objc2-web-kit = { version = "0.3.0", default-features = false, features = [
+  "std",
+  "objc2-core-foundation",
+  "objc2-app-kit",
+  "block2",
+  "WKWebView",
+  "WKWebViewConfiguration",
+  "WKWebsiteDataStore",
+  "WKDownload",
+  "WKDownloadDelegate",
+  "WKNavigation",
+  "WKNavigationDelegate",
+  "WKUserContentController",
+  "WKURLSchemeHandler",
+  "WKPreferences",
+  "WKURLSchemeTask",
+  "WKScriptMessageHandler",
+  "WKUIDelegate",
+  "WKOpenPanelParameters",
+  "WKFrameInfo",
+  "WKSecurityOrigin",
+  "WKScriptMessage",
+  "WKNavigationAction",
+  "WKWebpagePreferences",
+  "WKNavigationResponse",
+  "WKUserScript",
+  "WKHTTPCookieStore",
 ] }
-objc2-foundation = { version = "0.3.0", features = [
-	"NSURLRequest",
-	"NSURL",
-	"NSString",
-	"NSKeyValueCoding",
-	"NSStream",
-	"NSDictionary",
-	"NSObject",
-	"NSData",
-	"NSKeyValueObserving",
-	"NSThread",
-	"NSJSONSerialization",
-	"NSDate",
-	"NSBundle",
-	"NSProcessInfo",
-	"NSValue",
-	"NSRange",
-	"NSRunLoop",
+objc2-core-foundation = { version = "0.3.0", default-features = false, features = [
+  "std",
+  "CFCGTypes",
+] }
+objc2-foundation = { version = "0.3.0", default-features = false, features = [
+  "std",
+  "objc2-core-foundation",
+  "NSURLRequest",
+  "NSURL",
+  "NSString",
+  "NSKeyValueCoding",
+  "NSStream",
+  "NSDictionary",
+  "NSObject",
+  "NSData",
+  "NSEnumerator",
+  "NSKeyValueObserving",
+  "NSThread",
+  "NSJSONSerialization",
+  "NSDate",
+  "NSBundle",
+  "NSProcessInfo",
+  "NSValue",
+  "NSRange",
+  "NSRunLoop",
 ] }
 
-[target."cfg(target_os = \"ios\")".dependencies]
-objc2-ui-kit = { version = "0.3.0", features = [
-	"UIResponder",
-	"UIScrollView",
-	"UIView",
-	"UIWindow",
-	"UIApplication",
-	"UIEvent",
+[target.'cfg(target_os = "ios")'.dependencies]
+objc2-ui-kit = { version = "0.3.0", default-features = false, features = [
+  "std",
+  "objc2-core-foundation",
+  "UIResponder",
+  "UIScrollView",
+  "UIView",
+  "UIWindow",
+  "UIApplication",
+  "UIEvent",
 ] }
 
-[target."cfg(target_os = \"macos\")".dependencies]
-objc2-app-kit = { version = "0.3.0", features = [
+[target.'cfg(target_os = "macos")'.dependencies]
+objc2-app-kit = { version = "0.3.0", default-features = false, features = [
+  "std",
+  "objc2-core-foundation",
   "NSApplication",
   "NSButton",
   "NSControl",

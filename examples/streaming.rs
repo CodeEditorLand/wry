@@ -259,10 +259,13 @@ fn stream_protocol(
 }
 
 fn random_boundary() -> String {
-	let mut x = [0_u8; 30];
-	getrandom::getrandom(&mut x).expect("failed to get random bytes");
-	(x[..]).iter().map(|&x| format!("{x:x}")).fold(String::new(), |mut a, x| {
-		a.push_str(x.as_str());
-		a
-	})
+  let mut x = [0_u8; 30];
+  getrandom::fill(&mut x).expect("failed to get random bytes");
+  (x[..])
+    .iter()
+    .map(|&x| format!("{x:x}"))
+    .fold(String::new(), |mut a, x| {
+      a.push_str(x.as_str());
+      a
+    })
 }
