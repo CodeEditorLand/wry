@@ -53,13 +53,13 @@ authors = ["Tauri Programme within The Commons Conservancy"]
 categories = ["gui"]
 description = "Cross-platform WebView rendering library"
 documentation = "https://docs.rs/wry"
-edition = "2021"
+edition = "2024"
 exclude = ["/.changes", "/.github", "/audits", "/wry-logo.svg"]
 license-file = "LICENSE"
 name = "wry"
 readme = "README.md"
 repository = "https://github.com/tauri-apps/wry"
-rust-version = "1.77"
+rust-version = "1.85.0"
 version = "0.48.1"
 
 [package.metadata]
