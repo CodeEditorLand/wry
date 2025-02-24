@@ -1,13 +1,18 @@
 workspace = {}
 
-[dependencies]
-cookie = { version = "0.18" }
-dpi = { version = "0.1" }
-http = "1.2"
-once_cell = "1"
-raw-window-handle = { version = "0.6", features = ["std"] }
-thiserror = "2.0"
-tracing = { version = "0.1", optional = true }
+[package]
+name = "wry"
+version = "0.49.0"
+authors = ["Tauri Programme within The Commons Conservancy"]
+edition = "2021"
+license = "Apache-2.0 OR MIT"
+description = "Cross-platform WebView rendering library"
+readme = "README.md"
+repository = "https://github.com/tauri-apps/wry"
+documentation = "https://docs.rs/wry"
+categories = ["gui"]
+rust-version = "1.77"
+exclude = ["/.changes", "/.github", "/audits", "/wry-logo.svg"]
 
 [dev-dependencies]
 getrandom = "0.3"
@@ -19,7 +24,10 @@ wgpu = "24"
 winit = "0.30"
 
 [features]
-default = ["drag-drop", "objc-exception", "protocol", "os-webview"]
+default = ["drag-drop", "protocol", "os-webview"]
+serde = ["dpi/serde"]
+drag-drop = []
+protocol = []
 devtools = []
 drag-drop = []
 fullscreen = []
